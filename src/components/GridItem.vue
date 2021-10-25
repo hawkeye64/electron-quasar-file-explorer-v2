@@ -1,7 +1,6 @@
 <template>
   <div class="griditemcontainer" :style="gridItemContainerStyleObject" @dblclick.prevent="onDblClick" @click="onClick">
     <div class="griditemimage" :style="gridItemImageStyleObject">
-      <!-- <img v-if="node.isDir" :size="width + 'px'" :width="width + 'px'" src="images/folder.png"> -->
       <grid-item-image
         :node="node"
         :width="width"

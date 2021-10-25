@@ -2,15 +2,7 @@
  * This file contains JavaScript that communicates with Rust API functions
  */
 /* eslint-disable no-undef */
-
-// import { watch, watchImmediate } from 'tauri-plugin-fs-watch-api'
-// import { readBinaryFile, readDir } from '@tauri-apps/api/fs'
-// import { homeDir, desktopDir, documentDir, downloadDir, pictureDir, audioDir, videoDir, sep } from '@tauri-apps/api/path'
-// import { metadata } from 'tauri-plugin-fs-extra-api'
-// import { open } from '@tauri-apps/api/shell'
-// import { platform } from '@tauri-apps/api/os'
-// const { shell } = require('electron')
-// const { ipcRenderer } = require('electron')
+/* eslint thnks "shell" is undefined */
 
 /**
  * Gets a watch on a path or an array of paths (this is debounced)
@@ -21,14 +13,7 @@
  * @returns stopWatching function - when called stops watching the path
  */
 export async function pathWatch (path, recursive = true, callback) {
-  // const stopWatching = await watch(path, { recursive }, event => {
-  //   // const { type, payload } = event
-  //   if (callback) {
-  //     callback(event)
-  //   }
-  // })
-
-  // return stopWatching
+  // TBD
 }
 
 /**
@@ -40,14 +25,7 @@ export async function pathWatch (path, recursive = true, callback) {
  * @returns stopWatching function - when called stops watching the path
  */
 export async function pathWatchImmediate (path, recursive = false, callback) {
-  // const stopWatching = await watchImmediate(path, { recursive }, event => {
-  //   // const { path, operation, cookie } = event
-  //   if (callback) {
-  //     callback(event)
-  //   }
-  // })
-
-  // return stopWatching
+  // TBD
 }
 
 /**
@@ -65,34 +43,8 @@ export async function windowsDrives () {
   return await shell.windowsDrives()
 }
 
-export async function readFiles (path) {
-  // try {
-  //   const folders = await readDir(path, { recursive: false })
-  //   return folders.filter(folder => folder.children === undefined)
-  // }
-  // catch (err) {
-  //   return []
-  // }
-  // shell.readFiles(path)
-  return Promise.resolve([])
-}
-
 export async function shortcutDirs () {
   return await shell.shortcutFolders()
-}
-
-// function removeEndSeparator (path) {
-//   return path.slice(0, -1)
-// }
-
-/**
- * @param {string} path The absolute path to a file or folder
- * @returns An object containing the stat metadata
- */
-export async function getMetadata (path) {
-  // return await metadata(path)
-  // shell.metadata(path)
-  return Promise.resolve('')
 }
 
 /**
