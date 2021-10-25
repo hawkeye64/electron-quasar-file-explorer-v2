@@ -23,7 +23,7 @@ export function useHandler () {
       const localDrives = []
       windowsDrives((error, drives) => {
         if (!error) {
-          localDrives.splice(0, localDrives.lenth, ...drives)
+          localDrives.splice(0, localDrives.length, ...drives)
           resolve(localDrives)
         }
         else {
