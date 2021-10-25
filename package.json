@@ -1,0 +1,49 @@
+{
+  "name": "electron-quasar-file-explorer-v2",
+  "version": "3.0.0",
+  "description": "Play offline videos",
+  "productName": "File Explorer",
+  "author": "Jeff Galbraith <jgalbraith@intelliviewtech.com>",
+  "private": true,
+  "scripts": {
+    "lint": "eslint --ext .js,.vue ./",
+    "test": "echo \"No test specified\" && exit 0"
+  },
+  "dependencies": {
+    "@quasar/extras": "^1.11.2",
+    "core-js": "^3.19.0",
+    "node-polyfill-webpack-plugin": "^1.1.4",
+    "pretty-bytes": "^5.6.0",
+    "quasar": "^2.2.1"
+  },
+  "devDependencies": {
+    "@babel/eslint-parser": "^7.15.8",
+    "@quasar/app": "^3.1.6",
+    "electron": "^15.3.0",
+    "electron-builder": "^22.13.1",
+    "electron-packager": "^15.4.0",
+    "eslint": "^8.1.0",
+    "eslint-config-standard": "^16.0.3",
+    "eslint-plugin-import": "^2.25.2",
+    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-promise": "^5.1.1",
+    "eslint-plugin-vue": "^7.20.0",
+    "eslint-webpack-plugin": "^3.0.1"
+  },
+  "browserslist": [
+    "last 10 Chrome versions",
+    "last 10 Firefox versions",
+    "last 4 Edge versions",
+    "last 7 Safari versions",
+    "last 8 Android versions",
+    "last 8 ChromeAndroid versions",
+    "last 8 FirefoxAndroid versions",
+    "last 10 iOS versions",
+    "last 5 Opera versions"
+  ],
+  "engines": {
+    "node": ">= 12.22.1",
+    "npm": ">= 6.13.4",
+    "yarn": ">= 1.21.1"
+  }
+}

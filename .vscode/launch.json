@@ -1,0 +1,30 @@
+{
+  // Use IntelliSense to learn about possible attributes.
+  // Hover to view descriptions of existing attributes.
+  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Launch quasar dev -m electron",
+      "program": "${workspaceFolder}/node_modules/@quasar/app/bin/quasar-dev",
+      "args": ["dev", "-m", "electron"],
+      "cwd": "${workspaceFolder}",
+      "request": "launch",
+      "skipFiles": [
+        "<node_internals>/**"
+      ],
+      "type": "pwa-node"
+    },
+    {
+      "name": "Launch quasar build -m electron",
+      "program": "${workspaceFolder}/node_modules/@quasar/app/bin/quasar",
+      "args": ["build", "-m", "electron"],
+      "cwd": "${workspaceFolder}",
+      "request": "launch",
+      "skipFiles": [
+        "<node_internals>/**"
+      ],
+      "type": "pwa-node"
+    }
+  ]
+}
