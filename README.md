@@ -20,6 +20,7 @@ For example:
 
 - copy, paste, cut, delete
 - file info
+- plug and play drives (ie: USBs)
 - and others
 
 Feel free to PR if you like to make it better for others.
