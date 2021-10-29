@@ -12,7 +12,7 @@
         />
 
         <breadcrumbs
-          :absolutePath="selectedFolder"
+          :absolute-path="selectedFolder"
           @selected="onSelectedFolder"
         />
 
@@ -25,7 +25,6 @@
           aria-label="toggle between grid and list modes"
           @click="toggleListType"
         />
-
       </q-toolbar>
     </q-header>
 
@@ -35,7 +34,7 @@
       side="left"
       behavior="desktop"
       bordered
-  >
+    >
       <q-item-label
         header
       >
@@ -43,7 +42,6 @@
       </q-item-label>
 
       <q-list dense>
-
         <ShortcutLink
           v-for="shortcut in shortcutLinks"
           :key="shortcut.name"
@@ -75,28 +73,30 @@
 
       <q-tree
         ref="treeRef"
+        v-model:selected="selectedKey"
         label-key="name"
         node-key="path"
         :nodes="folderTree"
-        v-model:selected="selectedKey"
         dense
         accordion
         default-expand-all
+        style="width: 100%;"
         @lazy-load="onLazyLoad"
         @update:selected="onSelectedFolder"
-        style="width: 100%;"
       />
     </q-drawer>
 
     <q-page-container>
-      <contents
-        v-show="store.viewType === 'nodes'"
-        :contents="store.files"
-        :listType="store.listType"
-        :viewType="store.viewType"
-        @click="onClicked"
-        @dblClick="onDblClicked"
-      />
+      <q-page>
+        <contents
+          v-show="store.viewType === 'nodes'"
+          :contents="store.files"
+          :list-type="store.listType"
+          :view-type="store.viewType"
+          @click="onClicked"
+          @dblClick="onDblClicked"
+        />
+      </q-page>
     </q-page-container>
   </q-layout>
 </template>
@@ -108,9 +108,7 @@ import { defineComponent, ref, reactive, onBeforeMount, watch, nextTick } from '
 import {
   walkFolders,
   windowsDrives,
-  // readFiles,
   shortcutDirs,
-  // getMetadata,
   openFile,
   getSep,
   getPlatform
@@ -209,6 +207,15 @@ export default defineComponent({
       })
     })
 
+    // if the currentDrive changes,
+    // then rescan the root folders of that drive
+    // applicable for Windows only
+    watch(currentDrive, async () => {
+      selectedFolder.value = currentDrive.value + pathSep
+      const folders = await adjustFolders(await walkFolders(selectedFolder.value))
+      folderTree.splice(0, folderTree.length, ...folders)
+    })
+
     function sortContents (folders) {
       // sort the data
       folders.sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }))
@@ -261,7 +268,6 @@ export default defineComponent({
 
     async function onLazyLoad ({ node, key, done, fail }) {
       lazyLoading.value = true
-      console.log('onLazyLoad:', node, key)
       try {
         setSelectedFolder(node.path)
         const folders = await adjustFolders(await walkFolders(key))
@@ -287,30 +293,17 @@ export default defineComponent({
       }
     })
 
-    // if the currentDrive changes,
-    // then rescan the root folders of that drive
-    // applicable for Windows only
-    watch(currentDrive, async () => {
-      selectedFolder.value = currentDrive.value + pathSep
-      const folders = await adjustFolders(await walkFolders(selectedFolder.value))
-      folderTree.splice(0, folderTree.length, ...folders)
-    })
-
-    // watch(store.files, () => {
-    //   console.log('store.files:', store.files)
-    // })
-
     function onClicked (node) {
       // on single-clicks we don't do anything here
       // if we wanted to drill-down into folders, we
-      // can call this.onDblClicked function.
+      // can call onDblClicked function.
     }
 
-    function onDblClicked (node) {
+    async function onDblClicked (node) {
       // This causes a drill-down if it's a folder
       if (node.isDir) {
         store.viewType = 'nodes'
-        onSelectedFolder(node.path)
+        await onSelectedFolder(node.path)
         expandTree(node.path)
       }
       else {
@@ -320,6 +313,7 @@ export default defineComponent({
 
     function setSelectedFolder (absolutePath) {
       selectedFolder.value = absolutePath
+      store.viewType = 'nodes'
       // handle windows drive
       if (platform === 'win32') {
         if (selectedFolder.value.charAt(absolutePath.length - 1) === ':') {
@@ -332,8 +326,8 @@ export default defineComponent({
     }
 
     async function onSelectedFolder (absolutePath) {
-      setSelectedFolder(absolutePath)
       store.viewType = 'nodes'
+      setSelectedFolder(absolutePath)
       await filterContents(await walkFolders(absolutePath))
       // in case this came from breadcrumbs component
       expandTree(absolutePath)
@@ -379,7 +373,7 @@ export default defineComponent({
             if (lastNodeKey && !treeRef.value.isExpanded(lastNodeKey.path)) {
               treeRef.value.setExpanded(lastNodeKey.path, true)
               if (path2 === absolutePath) {
-                // this.selected = absolutePath
+                // selected = absolutePath
               }
               else {
                 nextTick(() => {

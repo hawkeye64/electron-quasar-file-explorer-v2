@@ -20,14 +20,15 @@ const { contextBridge, ipcRenderer } = require('electron')
 
 // Set up context bridge between the renderer process and the main process
 contextBridge.exposeInMainWorld(
-  'shell',
+  'myShell',
   {
-    openFile: (path) => ipcRenderer.invoke('shell:openFile', path),
-    walkFolders: (path) => ipcRenderer.invoke('shell:walkFolders', path),
-    windowsDrives: () => ipcRenderer.invoke('shell:windowsDrives'),
-    shortcutFolders: () => ipcRenderer.invoke('shell:shortcutFolders'),
-    sep: () => ipcRenderer.invoke('shell:sep'),
-    platform: () => ipcRenderer.invoke('shell:platform'),
-    readFile: (path) => ipcRenderer.invoke('shell:readFile', path)
+    openFile: (path) => ipcRenderer.invoke('myShell:openFile', path),
+    walkFolders: (path) => ipcRenderer.invoke('myShell:walkFolders', path),
+    windowsDrives: () => ipcRenderer.invoke('myShell:windowsDrives'),
+    shortcutFolders: () => ipcRenderer.invoke('myShell:shortcutFolders'),
+    sep: () => ipcRenderer.invoke('myShell:sep'),
+    platform: () => ipcRenderer.invoke('myShell:platform'),
+    pathExists: (path) => ipcRenderer.invoke('myShell:pathExists', path),
+    readFile: (path) => ipcRenderer.invoke('myShell:readFile', path)
   }
 )

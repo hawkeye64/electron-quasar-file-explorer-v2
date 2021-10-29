@@ -1,13 +1,14 @@
-import { app, ipcMain } from 'electron'
+import { app, ipcMain, shell } from 'electron'
 import path from 'path'
 import os from 'os'
-import fs from 'fs'
+import { readFileSync } from 'fs'
+import { pathExists } from 'fs-extra'
 
 import walkFolders from './walkFolders'
 import windowsDrives from './getWindowsDrives'
 
 export function useHandler () {
-  ipcMain.handle('shell:walkFolders', async (event, path) => {
+  ipcMain.handle('myShell:walkFolders', async (event, path) => {
     const folders = []
     for (const fileInfo of walkFolders(path, 0)) {
       if (fileInfo.isDir && !fileInfo.error) {
@@ -18,7 +19,7 @@ export function useHandler () {
     return folders
   })
 
-  ipcMain.handle('shell:windowsDrives', async () => {
+  ipcMain.handle('myShell:windowsDrives', async () => {
     return new Promise((resolve, reject) => {
       const localDrives = []
       windowsDrives((error, drives) => {
@@ -34,7 +35,7 @@ export function useHandler () {
     })
   })
 
-  ipcMain.handle('shell:shortcutFolders', async () => {
+  ipcMain.handle('myShell:shortcutFolders', async () => {
     const home = app.getPath('home')
     const desktop = app.getPath('desktop')
     const document = app.getPath('documents')
@@ -56,20 +57,24 @@ export function useHandler () {
     return shortcuts
   })
 
-  ipcMain.handle('shell:sep', async () => {
+  ipcMain.handle('myShell:sep', async () => {
     return path.sep
   })
 
-  ipcMain.handle('shell:platform', async () => {
+  ipcMain.handle('myShell:platform', async () => {
     return os.platform()
   })
 
-  ipcMain.handle('shell:openFile', async (event, path) => {
+  ipcMain.handle('myShell:pathExists', async (event, path) => {
+    return await pathExists(path)
+  })
+
+  ipcMain.handle('myShell:openFile', async (event, path) => {
     // open the file as specified by the user
     return await shell.openPath(path)
   })
 
-  ipcMain.handle('shell:readFile', async (event, path) => {
-    return fs.readFileSync(path)
+  ipcMain.handle('myShell:readFile', async (event, path) => {
+    return readFileSync(path)
   })
 }

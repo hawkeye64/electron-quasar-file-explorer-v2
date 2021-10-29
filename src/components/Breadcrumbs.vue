@@ -4,9 +4,10 @@
       v-for="object in toolbarLinks"
       :key="object.path"
       class="breadcrumb"
-      @click="onFolderSelected(object)">
-        {{object.name}}
-      </span>
+      @click="onFolderSelected(object)"
+    >
+      {{ object.name }}
+    </span>
   </div>
 </template>
 

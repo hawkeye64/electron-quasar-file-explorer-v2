@@ -1,12 +1,25 @@
 <template>
-  <div class="griditemcontainer" :style="gridItemContainerStyleObject" @dblclick.prevent="onDblClick" @click="onClick">
-    <div class="griditemimage" :style="gridItemImageStyleObject">
+  <div
+    class="griditemcontainer"
+    :style="gridItemContainerStyleObject"
+    @dblclick.prevent="onDblClick"
+    @click="onClick"
+  >
+    <div
+      class="griditemimage"
+      :style="gridItemImageStyleObject"
+    >
       <grid-item-image
         :node="node"
         :width="width"
       />
     </div>
-    <div class="griditemtext" :style="gridItemTextStyleObject">{{ node.name }}</div>
+    <div
+      class="griditemtext"
+      :style="gridItemTextStyleObject"
+    >
+      {{ node.name }}
+    </div>
   </div>
 </template>
 
@@ -72,6 +85,7 @@ export default defineComponent({
 
     watch(() => props.viewType, (val) => {
       if (props.viewType === 'nodes' && (props.node === props.selectedNode)) {
+        // TODO: Jeff
         // this.$el.scrollIntoView()
       }
     })

@@ -4,8 +4,8 @@ import os from 'os'
 
 import { useHandler } from './handler'
 
-// needed in case nodeIntegration is not true
-const platform = process.platform || os.platform()
+// needed in case process is undefined under Linux
+const platform = process?.platform || os.platform()
 
 try {
   if (platform === 'win32' && nativeTheme.shouldUseDarkColors === true) {

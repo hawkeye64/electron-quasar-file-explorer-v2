@@ -1,43 +1,55 @@
 <template>
-  <div v-if="contents && contents.length" class="contents-container">
+  <div
+    v-if="contents && contents.length"
+    class="contents-container"
+  >
     <div class="contents-wrapper">
-      <div v-if="listType === 'grid'" class="row justify-left">
-        <template v-for="node in contents" :key="node.path">
+      <div
+        v-if="listType === 'grid'"
+        class="row justify-left"
+      >
+        <template
+          v-for="node in contents"
+          :key="node.path"
+        >
           <grid-item
             :node="node"
-            :selectedNode="selectedNode"
-            :viewType="viewType"
+            :selected-node="selectedNode"
+            :view-type="viewType"
+            class="non-selectable"
             @click="onClick"
             @dblClick="onDblClick"
-            class="non-selectable"
           />
         </template>
       </div>
 
-      <div v-if="listType === 'list'" id="content-scroll" style="min-height: 100%;">
+      <div
+        v-if="listType === 'list'"
+        id="content-scroll"
+        style="min-height: 100%;"
+      >
         <q-table
           id="content"
+          v-model:pagination="pagination"
           dense
           hide-bottom
           flat
           :rows="contents"
           :columns="columns"
           row-key="path"
-          v-model:pagination="pagination"
           separator="none"
           class="no-border-radius my-sticky-header-table"
           style="min-height: 100%;"
         >
-          <template v-slot:body="props">
+          <template #body="props">
             <q-tr
               :id="props.row.path"
               :props="props"
-              @click.stop="rowClick(props.row)"
-              @dblclick.stop="dblRowClick(props.row)"
               :style="selectedStyleObject(props.row)"
               class="non-selectable cursor-pointer"
+              @click.stop="rowClick(props.row)"
+              @dblclick.stop="dblRowClick(props.row)"
             >
-
               <q-td
                 key="type"
                 :props="props"
@@ -49,20 +61,28 @@
                   :width="imageWidth"
                 />
               </q-td>
-              <q-td key="label" :props="props">
+              <q-td
+                key="label"
+                :props="props"
+              >
                 {{ props.row.name }}
               </q-td>
-              <q-td key="size" :props="props">
+              <q-td
+                key="size"
+                :props="props"
+              >
                 {{ getSize(props.row) }}
               </q-td>
-              <q-td key="modified" :props="props">
+              <q-td
+                key="modified"
+                :props="props"
+              >
                 {{ getModified(props.row) }}
               </q-td>
             </q-tr>
           </template>
         </q-table>
       </div>
-
     </div>
   </div>
 </template>

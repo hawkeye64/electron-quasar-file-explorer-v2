@@ -2,7 +2,7 @@
  * This file contains JavaScript that communicates with Rust API functions
  */
 /* eslint-disable no-undef */
-/* eslint thnks "shell" is undefined */
+// eslint thinks "myShell" is undefined
 
 /**
  * Gets a watch on a path or an array of paths (this is debounced)
@@ -36,15 +36,15 @@ export async function pathWatchImmediate (path, recursive = false, callback) {
  * @returns array of '{ children: [] (optional), name: string, path: string }'
  */
 export async function walkFolders (path) {
-  return await shell.walkFolders(path)
+  return await myShell.walkFolders(path)
 }
 
 export async function windowsDrives () {
-  return await shell.windowsDrives()
+  return await myShell.windowsDrives()
 }
 
 export async function shortcutDirs () {
-  return await shell.shortcutFolders()
+  return await myShell.shortcutFolders()
 }
 
 /**
@@ -53,24 +53,28 @@ export async function shortcutDirs () {
  * '/' on POSIX
  */
 export async function getSep () {
-  return await shell.sep()
+  return await myShell.sep()
 }
 
 export async function openFile (path) {
-  return await shell.openFile(path)
+  return await myShell.openFile(path)
 }
 
 export async function getPlatform () {
-  return await shell.platform()
+  return await myShell.platform()
 }
 
-export async function getBinaryFile (path) {
-  // return await readBinaryFile(path)
+export async function pathExists (path) {
+  return await myShell.pathExists(path)
+}
+
+export async function readFile (path) {
+  return await myShell.readFile(path)
 }
 
 export async function getImageFile (path) {
   return new Promise((resolve) => {
-    shell.readFile(path)
+    myShell.readFile(path)
       .then(buffer => {
         arrayBufferToBase64(new Uint8Array(buffer), base64 => {
           const image = 'data:image/png;base64,' + base64

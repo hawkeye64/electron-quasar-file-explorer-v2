@@ -1,7 +1,13 @@
 <template>
-  <div class="square" :style="gridItemImageContainerStyleObject">
-    <span class="img-helper"></span>
-    <img :src="image" :style="gridItemImageStyleObject">
+  <div
+    class="square"
+    :style="gridItemImageContainerStyleObject"
+  >
+    <span class="img-helper" />
+    <img
+      :src="image"
+      :style="gridItemImageStyleObject"
+    >
   </div>
 </template>
 
@@ -50,7 +56,9 @@ export default defineComponent({
     async function getImage () {
       // mimeType can be false if it was not recognized
       if (props.node.mimetype) {
-        const type = props.node.mimetype.split('/')[ 0 ]
+        const parts = props.node.mimetype.split('/')
+        const type = parts[ 0 ]
+        const subtype = parts[ 1 ]
         if (type === 'pdf'
           || props.node.mimetype === 'application/pdf') {
           return basePath + 'pdf.png'
@@ -69,7 +77,11 @@ export default defineComponent({
           return basePath + 'binary.png'
         }
         else if (type === 'image') {
+          if (subtype === 'svg+xml') {
+            return basePath + 'image.png'
+          }
           try {
+            // return a thumbnail image
             return await getImageFile(props.node.path)
           }
           catch (err) {

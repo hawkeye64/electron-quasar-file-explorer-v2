@@ -1,6 +1,8 @@
 <template>
-  <div v-if="store.files && store.files.length" class="contents-container">
-  </div>
+  <div
+    v-if="store.files && store.files.length"
+    class="contents-container"
+  />
 </template>
 
 <script>

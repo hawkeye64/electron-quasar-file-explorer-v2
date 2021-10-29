@@ -21,7 +21,7 @@ import { defineComponent } from 'vue'
 
 export default defineComponent({
   name: 'ShortcutLink',
-  emits: ['shortcut'],
+
   props: {
     name: {
       type: String,
@@ -38,6 +38,9 @@ export default defineComponent({
       default: ''
     }
   },
+
+  emits: ['shortcut'],
+
   setup (props, { emit }) {
     function onClick () {
       const shortcut = {

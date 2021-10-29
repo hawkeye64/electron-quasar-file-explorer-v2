@@ -8,8 +8,10 @@
 
 /* eslint-env node */
 const ESLintPlugin = require('eslint-webpack-plugin')
-const path = require('path')
 const { configure } = require('quasar/wrappers')
+// const fse = require('fs-extra')
+const path = require('path')
+const CopyWebpackPlugin = require('copy-webpack-plugin')
 
 module.exports = configure(function (ctx) {
   return {
@@ -34,7 +36,7 @@ module.exports = configure(function (ctx) {
     extras: [
       // 'ionicons-v4',
       // 'mdi-v5',
-      // 'fontawesome-v5',
+      'fontawesome-v5',
       // 'eva-icons',
       // 'themify',
       // 'line-awesome',
@@ -228,23 +230,9 @@ module.exports = configure(function (ctx) {
 
         appId: 'electron-quasar-file-explorer-v2',
 
-        // appImage: {
-        //   artifactName?,
-        //   category?,
-        //   description?,
-        //   desktop?,
-        //   executableArgs?,
-        //   license?,
-        //   mimeTypes?,
-        //   publish?,
-        //   synopsis?
-        // },
-        // icon: 'src-electron/icons/linux-512x512.png',
-
         linux: {
-          category: 'Utility',
-          //   target: 'AppImage',
-          icon: path.resolve(__dirname, 'src-electron/icons/linux-512x512.png')
+          category: 'Utility'
+          //   target: 'AppImage'
         }
       },
 
@@ -257,6 +245,16 @@ module.exports = configure(function (ctx) {
           .use(ESLintPlugin, [{ extensions: ['js'] }])
         const nodePolyfillWebpackPlugin = require('node-polyfill-webpack-plugin')
         chain.plugin('node-polyfill').use(nodePolyfillWebpackPlugin)
+
+        // copy the icons folder to destination for packaging so we have a tray icon in BrowserWindow
+        const patterns = [{
+          from: path.resolve(__dirname, 'src-electron/icons'),
+          to: path.resolve(__dirname, 'dist/electron/UnPackaged/icons'),
+          noErrorOnMissing: true
+        }]
+
+        chain.plugin('copy-webpack')
+          .use(CopyWebpackPlugin, [{ patterns }])
       },
 
       // "chain" is a webpack-chain object https://github.com/neutrinojs/webpack-chain
