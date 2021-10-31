@@ -1,7 +1,7 @@
 {
   "name": "electron-quasar-file-explorer-v2",
   "version": "3.0.0",
-  "description": "Play offline videos",
+  "description": "Explore your file system",
   "productName": "File Explorer",
   "author": "Jeff Galbraith <jgalbraith@intelliviewtech.com>",
   "private": true,
@@ -15,11 +15,11 @@
     "fs-extra": "^10.0.0",
     "node-polyfill-webpack-plugin": "^1.1.4",
     "pretty-bytes": "^5.6.0",
-    "quasar": "^2.2.1"
+    "quasar": "^2.2.2"
   },
   "devDependencies": {
     "@babel/eslint-parser": "^7.15.8",
-    "@quasar/app": "^3.1.7",
+    "@quasar/app": "^3.1.8",
     "electron": "^15.3.0",
     "electron-builder": "^22.13.1",
     "electron-packager": "^15.4.0",

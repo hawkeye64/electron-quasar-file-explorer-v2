@@ -1060,10 +1060,10 @@
   resolved "https://registry.yarnpkg.com/@positron/stack-trace/-/stack-trace-1.0.0.tgz#14fcc712a530038ef9be1ce6952315a839f466a8"
   integrity sha1-FPzHEqUwA475vhzmlSMVqDn0Zqg=
 
-"@quasar/app@^3.1.7":
-  version "3.1.7"
-  resolved "https://registry.yarnpkg.com/@quasar/app/-/app-3.1.7.tgz#54fb40f1a8ab5b424afd0a09dd6b9cf416830b7b"
-  integrity sha512-917Xp6Rd8Wh1Fv2Qr5YlENJz6p3m2oc9iXNexSJ81gOqjBA3SQVOb5DDXybSL+pArCMZihT/0LBOGWCP75+9VQ==
+"@quasar/app@^3.1.8":
+  version "3.1.8"
+  resolved "https://registry.yarnpkg.com/@quasar/app/-/app-3.1.8.tgz#89fa94fc46aeda2dd9512e60aef71429fe3ededf"
+  integrity sha512-JqAhj7fqEcD6gvHoigPAjWxB8m1rvWoraz4t/tc3QpuXGFJ3VIpFpP5ow1v0h/2QjncOQH+XKgQ7Tb4dJz9yNw==
   dependencies:
     "@quasar/babel-preset-app" "2.0.1"
     "@quasar/fastclick" "1.1.4"
@@ -1130,7 +1130,7 @@
     webpack "^5.58.1"
     webpack-bundle-analyzer "4.4.2"
     webpack-chain "6.5.1"
-    webpack-dev-server "4.3.1"
+    webpack-dev-server "4.4.0"
     webpack-merge "5.8.0"
     webpack-node-externals "3.0.0"
 
@@ -2445,7 +2445,7 @@ chardet@^0.7.0:
   resolved "https://registry.yarnpkg.com/chardet/-/chardet-0.7.0.tgz#90094849f0937f2eedc2425d0d28a9e5f0cbad9e"
   integrity sha512-mT8iDcrh03qDGRRmoA2hmBJnxpllMR+0/0qlzjqZES6NdiWDcZkCNAk4rPFZ9Q85r27unkiNNg8ZOiwZXBHwcA==
 
-chokidar@3.5.2, "chokidar@>=3.0.0 <4.0.0", chokidar@^3.4.2, chokidar@^3.5.1:
+chokidar@3.5.2, "chokidar@>=3.0.0 <4.0.0", chokidar@^3.4.2, chokidar@^3.5.1, chokidar@^3.5.2:
   version "3.5.2"
   resolved "https://registry.yarnpkg.com/chokidar/-/chokidar-3.5.2.tgz#dba3976fcadb016f66fd365021d91600d01c1e75"
   integrity sha512-ekGhOnNVPgT77r4K/U3GDhu+FQ2S8TnK/s2KbIGXi0SZWuwkZ2QNyfWdZW+TVfn84DpEP7rLeCt2UI6bJ8GwbQ==
@@ -6712,10 +6712,10 @@ qs@6.7.0:
   resolved "https://registry.yarnpkg.com/qs/-/qs-6.7.0.tgz#41dc1a015e3d581f1621776be31afb2876a9b1bc"
   integrity sha512-VCdBRNFTX1fyE7Nb6FYoURo/SPe62QCaAyzJvUjwRaIsc+NePBEniHlvxFmmX56+HZphIGtV0XeCirBtpDrTyQ==
 
-quasar@^2.2.1:
-  version "2.2.1"
-  resolved "https://registry.yarnpkg.com/quasar/-/quasar-2.2.1.tgz#5df3520ea8b9d6e69d71ab0083827dfc514a14fd"
-  integrity sha512-Uv5dFlF3SGZANNhdXQ4mj50nibqbFXiI1OGWZ7PIBdAuav3K8gjvXB0b13tLScDdB6z6bDHl4is2X/y1r+NmWw==
+quasar@^2.2.2:
+  version "2.2.2"
+  resolved "https://registry.yarnpkg.com/quasar/-/quasar-2.2.2.tgz#fc3a82a3c2aef3c3ef2db11b9be4d23b0c8333a0"
+  integrity sha512-X5+Q6N9LMG+1ebmAD+1CJst//mj3Tf3S2N6CwcGEO8OEpVTSU2G+t+shuO3EsQwjVJR6jBJDvcqRJhoxCliPXw==
 
 querystring-es3@^0.2.1:
   version "0.2.1"
@@ -8176,14 +8176,14 @@ webpack-dev-middleware@^5.2.1:
     range-parser "^1.2.1"
     schema-utils "^3.1.0"
 
-webpack-dev-server@4.3.1:
-  version "4.3.1"
-  resolved "https://registry.yarnpkg.com/webpack-dev-server/-/webpack-dev-server-4.3.1.tgz#759d3337f0fbea297fbd1e433ab04ccfc000076b"
-  integrity sha512-qNXQCVYo1kYhH9pgLtm8LRNkXX3XzTfHSj/zqzaqYzGPca+Qjr+81wj1jgPMCHhIhso9WEQ+kX9z23iG9PzQ7w==
+webpack-dev-server@4.4.0:
+  version "4.4.0"
+  resolved "https://registry.yarnpkg.com/webpack-dev-server/-/webpack-dev-server-4.4.0.tgz#10ec17088f840c9ccb2ebb0b43c49ec293206f7e"
+  integrity sha512-+S0XRIbsopVjPFjCO8I07FXYBWYqkFmuP56ucGMTs2hA/gV4q2M9xTmNo5Tg4o8ffRR+Nm3AsXnQXxKRyYovrA==
   dependencies:
     ansi-html-community "^0.0.8"
     bonjour "^3.5.0"
-    chokidar "^3.5.1"
+    chokidar "^3.5.2"
     colorette "^2.0.10"
     compression "^1.7.4"
     connect-history-api-fallback "^1.6.0"

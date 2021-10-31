@@ -10,8 +10,8 @@
 const ESLintPlugin = require('eslint-webpack-plugin')
 const { configure } = require('quasar/wrappers')
 // const fse = require('fs-extra')
-const path = require('path')
-const CopyWebpackPlugin = require('copy-webpack-plugin')
+// const path = require('path')
+// const CopyWebpackPlugin = require('copy-webpack-plugin')
 
 module.exports = configure(function (ctx) {
   return {
@@ -208,10 +208,6 @@ module.exports = configure(function (ctx) {
     electron: {
       bundler: 'builder', // 'packager' or 'builder'
 
-      // node: {
-      //   fs: 'empty'
-      // },
-
       packager: {
         // https://github.com/electron-userland/electron-packager/blob/master/docs/api.md#options
 
@@ -223,6 +219,15 @@ module.exports = configure(function (ctx) {
 
         // Windows only
         // win32metadata: { ... }
+        win: {
+          target: 'nsis'
+        },
+        linux: {
+          target: 'AppImage'
+        },
+        mac: {
+          target: 'default'
+        }
       },
 
       builder: {
@@ -247,14 +252,14 @@ module.exports = configure(function (ctx) {
         chain.plugin('node-polyfill').use(nodePolyfillWebpackPlugin)
 
         // copy the icons folder to destination for packaging so we have a tray icon in BrowserWindow
-        const patterns = [{
-          from: path.resolve(__dirname, 'src-electron/icons'),
-          to: path.resolve(__dirname, 'dist/electron/UnPackaged/icons'),
-          noErrorOnMissing: true
-        }]
+        // const patterns = [{
+        //   from: path.resolve(__dirname, 'src-electron/icons'),
+        //   to: path.resolve(__dirname, 'dist/electron/UnPackaged/icons'),
+        //   noErrorOnMissing: true
+        // }]
 
-        chain.plugin('copy-webpack')
-          .use(CopyWebpackPlugin, [{ patterns }])
+        // chain.plugin('copy-webpack')
+        //   .use(CopyWebpackPlugin, [{ patterns }])
       },
 
       // "chain" is a webpack-chain object https://github.com/neutrinojs/webpack-chain

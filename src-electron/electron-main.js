@@ -16,14 +16,6 @@ catch (_) { }
 
 useHandler()
 
-// determine which icon to use for the platform
-// works for both dev and build
-const iconPath = path.resolve(__dirname, 'icons',
-  platform === 'win32' ? 'icon.ico'
-    : platform === 'darwin' ? 'icon.icns'
-      : 'linux-512x512.png'
-)
-
 let mainWindow
 
 function createWindow () {
@@ -31,7 +23,7 @@ function createWindow () {
    * Initial window options
    */
   mainWindow = new BrowserWindow({
-    icon: iconPath,
+    icon: path.resolve(__dirname, 'icons', 'icon.png'), // tray icon
     width: 1000,
     height: 600,
     useContentSize: true,
