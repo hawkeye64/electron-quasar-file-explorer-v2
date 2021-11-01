@@ -42,7 +42,7 @@
       </q-item-label>
 
       <q-list dense>
-        <ShortcutLink
+        <shortcut-link
           v-for="shortcut in shortcutLinks"
           :key="shortcut.name"
           v-bind="shortcut"
