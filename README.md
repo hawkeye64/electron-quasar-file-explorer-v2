@@ -1,5 +1,7 @@
 # File Explorer (electron-quasar-file-explorer-v2)
 
+![File Explorer](images/file-explorer.png)
+
 This is a follow-up to an article I wrote and published on [Medium](https://medium.com/quasar-framework/building-an-electron-file-explorer-with-quasar-and-vue-7bf94f1bbf6).
 
 This File Explorer now uses Quasar v2 and Vue 3 composition API.
