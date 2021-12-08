@@ -6,30 +6,33 @@
   "author": "Jeff Galbraith <jgalbraith@intelliviewtech.com>",
   "private": true,
   "scripts": {
-    "lint": "eslint --ext .js,.vue ./",
+    "clean": "rm -Rf yarn.lock node_modules",
+    "dev": "quasar dev -m electron",
+    "build": "quasar build -m electron",
+    "lint": "eslint --ext .js,.ts,.vue src src-electron",
     "test": "echo \"No test specified\" && exit 0"
   },
   "dependencies": {
-    "@quasar/extras": "^1.11.3",
-    "core-js": "^3.19.0",
+    "@quasar/extras": "^1.12.2",
+    "core-js": "^3.19.3",
     "fs-extra": "^10.0.0",
     "node-polyfill-webpack-plugin": "^1.1.4",
     "pretty-bytes": "^5.6.0",
-    "quasar": "^2.2.2"
+    "quasar": "^2.3.4"
   },
   "devDependencies": {
-    "@babel/eslint-parser": "^7.15.8",
-    "@quasar/app": "^3.1.8",
-    "electron": "^15.3.0",
-    "electron-builder": "^22.13.1",
+    "@babel/eslint-parser": "^7.16.3",
+    "@quasar/app": "^3.2.5",
+    "electron": "^16.0.4",
+    "electron-builder": "^22.14.5",
     "electron-packager": "^15.4.0",
-    "eslint": "^8.1.0",
+    "eslint": "^8.4.1",
     "eslint-config-standard": "^16.0.3",
-    "eslint-plugin-import": "^2.25.2",
+    "eslint-plugin-import": "^2.25.3",
     "eslint-plugin-node": "^11.1.0",
-    "eslint-plugin-promise": "^5.1.1",
-    "eslint-plugin-vue": "^8.0.1",
-    "eslint-webpack-plugin": "^3.1.0"
+    "eslint-plugin-promise": "^5.2.0",
+    "eslint-plugin-vue": "^8.2.0",
+    "eslint-webpack-plugin": "^3.1.1"
   },
   "browserslist": [
     "last 10 Chrome versions",
