@@ -1,6 +1,6 @@
 const exec = require('child_process').exec
 const os = require('os')
-const fs = require('fs')
+const fse = require('fs-extra')
 const path = require('path')
 
 function getWindowsDrives (callback) {
@@ -26,7 +26,7 @@ function getWindowsDrives (callback) {
         if (drive.length && drive[ drive.length - 1 ] === ':') {
           try {
             // if stat fails, it'll throw an exception
-            fs.statSync(drive + path.sep)
+            fse.statSync(drive + path.sep)
 
             // add the drive to array
             drives.push(drive)

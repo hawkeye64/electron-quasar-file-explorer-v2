@@ -1,8 +1,8 @@
 import { app, ipcMain, shell } from 'electron'
 import path from 'path'
 import os from 'os'
-import { readFileSync } from 'fs'
-import { pathExists } from 'fs-extra'
+import { pathExists, readFileSync } from 'fs-extra'
+import mime from 'mime'
 
 import walkFolders from './walkFolders'
 import windowsDrives from './getWindowsDrives'
@@ -76,5 +76,9 @@ export function useHandler () {
 
   ipcMain.handle('myShell:readFile', async (event, path) => {
     return readFileSync(path)
+  })
+
+  ipcMain.handle('myShell:getMimeType', async (event, path) => {
+    return mime.lookup(path)
   })
 }

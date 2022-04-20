@@ -29,6 +29,7 @@ contextBridge.exposeInMainWorld(
     sep: () => ipcRenderer.invoke('myShell:sep'),
     platform: () => ipcRenderer.invoke('myShell:platform'),
     pathExists: (path) => ipcRenderer.invoke('myShell:pathExists', path),
-    readFile: (path) => ipcRenderer.invoke('myShell:readFile', path)
+    readFile: (path) => ipcRenderer.invoke('myShell:readFile', path),
+    getMimeType: (path) => ipcRenderer.invoke('myShell:getMimeType', path)
   }
 )

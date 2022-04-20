@@ -95,3 +95,7 @@ export function arrayBufferToBase64 (buffer, callback) {
   }
   reader.readAsDataURL(blob)
 }
+
+export async function getMimeType (path) {
+  return await myShell.getMimeType(path)
+}

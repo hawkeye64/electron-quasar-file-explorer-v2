@@ -1,5 +1,5 @@
 const path = require('path')
-const fs = require('fs')
+const fse = require('fs-extra')
 
 /**
  * Generator function that lists all files in a folder
@@ -10,11 +10,11 @@ const fs = require('fs')
  */
 function *walkFolders (folder) {
   try {
-    const files = fs.readdirSync(folder)
+    const files = fse.readdirSync(folder)
     for (const file of files) {
       try {
         const pathToFile = path.join(folder, file)
-        const stat = fs.statSync(pathToFile)
+        const stat = fse.statSync(pathToFile)
 
         const isDirectory = stat.isDirectory()
         const isSymbolicLink = stat.isSymbolicLink()

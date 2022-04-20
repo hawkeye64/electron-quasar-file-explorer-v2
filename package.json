@@ -13,25 +13,27 @@
     "test": "echo \"No test specified\" && exit 0"
   },
   "dependencies": {
-    "@quasar/extras": "^1.12.2",
-    "core-js": "^3.19.3",
-    "fs-extra": "^10.0.0",
+    "@quasar/extras": "^1.13.5",
+    "core-js": "^3.22.0",
+    "fs-extra": "^10.1.0",
     "node-polyfill-webpack-plugin": "^1.1.4",
-    "pretty-bytes": "^5.6.0",
-    "quasar": "^2.3.4"
+    "pretty-bytes": "^6.0.0",
+    "quasar": "^2.6.6",
+    "vue": "^3.0.0",
+    "vue-router": "^4.0.0"
   },
   "devDependencies": {
-    "@babel/eslint-parser": "^7.16.3",
-    "@quasar/app": "^3.2.5",
-    "electron": "^16.0.4",
-    "electron-builder": "^22.14.5",
+    "@babel/eslint-parser": "^7.17.0",
+    "@quasar/app": "^3.3.3",
+    "electron": "^18.0.4",
+    "electron-builder": "^23.0.3",
     "electron-packager": "^15.4.0",
-    "eslint": "^8.4.1",
+    "eslint": "^8.13.0",
     "eslint-config-standard": "^16.0.3",
-    "eslint-plugin-import": "^2.25.3",
+    "eslint-plugin-import": "^2.26.0",
     "eslint-plugin-node": "^11.1.0",
-    "eslint-plugin-promise": "^5.2.0",
-    "eslint-plugin-vue": "^8.2.0",
+    "eslint-plugin-promise": "^6.0.0",
+    "eslint-plugin-vue": "^8.6.0",
     "eslint-webpack-plugin": "^3.1.1"
   },
   "browserslist": [

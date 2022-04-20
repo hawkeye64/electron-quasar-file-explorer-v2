@@ -111,11 +111,11 @@ import {
   shortcutDirs,
   openFile,
   getSep,
-  getPlatform
+  getPlatform,
+  getMimeType
 } from '../backend/utils.js'
 import { useExplorerStore } from '../store/explorerStore.js'
 import Contents from '../pages/Contents.vue'
-import mime from 'mime'
 
 export default defineComponent({
   name: 'MainLayout',
@@ -226,10 +226,10 @@ export default defineComponent({
       const filteredContent = await Promise.all(folders
         .filter(folder => !folder.error)
         .map(async folder => {
-          // folder.metadata = await getMetadata(absolutePath)
-          folder.mimetype = mime.getType(folder.path)
+          folder.mimetype = await getMimeType(folder.path)
           return folder
-        }))
+        })
+      )
 
       // sort contents
       sortContents(filteredContent)
@@ -253,10 +253,10 @@ export default defineComponent({
           const absolutePath = folder.path + pathSep + folder.name
           folder.lazy = !!folder.children
           folder.tickable = true
-          // folder.metadata = await getMetadata(absolutePath)
-          folder.mimetype = mime.getType(absolutePath)
+          folder.mimetype = await getMimeType(absolutePath)
           return folder
-        }))
+        })
+      )
       sortContents(filteredFolders)
       return filteredFolders
     }
