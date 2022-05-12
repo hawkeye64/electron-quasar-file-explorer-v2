@@ -14,7 +14,7 @@
   },
   "dependencies": {
     "@quasar/extras": "^1.13.5",
-    "core-js": "^3.22.0",
+    "core-js": "^3.22.1",
     "fs-extra": "^10.1.0",
     "node-polyfill-webpack-plugin": "^1.1.4",
     "pretty-bytes": "^6.0.0",
