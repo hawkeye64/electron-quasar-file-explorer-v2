@@ -13,7 +13,7 @@
     "test": "echo \"No test specified\" && exit 0"
   },
   "dependencies": {
-    "@quasar/extras": "^1.13.5",
+    "@quasar/extras": "^1.13.6",
     "core-js": "^3.22.0",
     "fs-extra": "^10.1.0",
     "node-polyfill-webpack-plugin": "^1.1.4",
