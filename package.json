@@ -20,7 +20,7 @@
     "pretty-bytes": "^6.0.0",
     "quasar": "^2.6.6",
     "vue": "^3.0.0",
-    "vue-router": "^4.0.0"
+    "vue-router": "^4.0.15"
   },
   "devDependencies": {
     "@babel/eslint-parser": "^7.17.0",
