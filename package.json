@@ -18,7 +18,7 @@
     "fs-extra": "^10.1.0",
     "node-polyfill-webpack-plugin": "^1.1.4",
     "pretty-bytes": "^6.0.0",
-    "quasar": "^2.6.6",
+    "quasar": "^2.7.0",
     "vue": "^3.0.0",
     "vue-router": "^4.0.0"
   },
