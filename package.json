@@ -19,7 +19,7 @@
     "node-polyfill-webpack-plugin": "^1.1.4",
     "pretty-bytes": "^6.0.0",
     "quasar": "^2.6.6",
-    "vue": "^3.0.0",
+    "vue": "^3.2.34",
     "vue-router": "^4.0.0"
   },
   "devDependencies": {
