@@ -7,7 +7,7 @@
   "type": "module",
   "scripts": {
     "clean": "rm -rf node_modules src-electron/node_modules dist .quasar",
-    "dev": "quasar dev -m electron",
+    "dev": "node scripts/dev-electron.mjs",
     "build": "quasar build -m electron",
     "electron:install": "pnpm --dir src-electron install",
     "lint": "oxlint --ignore-path .oxlintignore .",

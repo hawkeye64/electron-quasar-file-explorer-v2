@@ -1,6 +1,18 @@
 import { defineConfig } from "@quasar/app-vite";
 
-export default defineConfig((/* ctx */) => {
+const devBundledElectronDeps = new Set(["fs-extra", "mime"]);
+
+function bundleElectronDepsForDev(cfg: { external?: unknown }, dev: boolean) {
+  if (dev !== true || Array.isArray(cfg.external) !== true) {
+    return;
+  }
+
+  cfg.external = cfg.external.filter((dependency) => {
+    return typeof dependency !== "string" || devBundledElectronDeps.has(dependency) !== true;
+  });
+}
+
+export default defineConfig((ctx) => {
   return {
     boot: [],
     css: ["app.sass"],
@@ -46,6 +58,14 @@ export default defineConfig((/* ctx */) => {
       preloadScripts: ["electron-preload"],
       inspectPort: 5858,
       bundler: "builder",
+
+      extendElectronMainConf(cfg) {
+        bundleElectronDepsForDev(cfg, ctx.dev === true);
+      },
+
+      extendElectronPreloadConf(cfg) {
+        bundleElectronDepsForDev(cfg, ctx.dev === true);
+      },
 
       builder: {
         appId: "electron-quasar-file-explorer-v2",
