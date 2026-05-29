@@ -1,8 +1,11 @@
 /**
- * This file contains JavaScript that communicates with Rust API functions
+ * Renderer-side wrappers around the preload bridge.
+ *
+ * Components import these helpers instead of talking to window.myShell directly.
+ * That keeps IPC channel names centralized and easier to change later.
  */
 /* eslint-disable no-undef */
-// eslint thinks "myShell" is undefined
+// myShell is injected by src-electron/electron-preload.js.
 
 /**
  * Gets a watch on a path or an array of paths (this is debounced)
@@ -36,6 +39,7 @@ export async function pathWatchImmediate(_path, _recursive = false, _callback) {
  * @returns array of '{ children: [] (optional), name: string, path: string }'
  */
 export async function walkFolders(path) {
+  // The actual filesystem scan happens in the Electron main process.
   return await myShell.walkFolders(path);
 }
 
@@ -75,6 +79,8 @@ export async function readFile(path) {
 export async function getImageFile(path) {
   return new Promise((resolve) => {
     myShell.readFile(path).then((buffer) => {
+      // Local image thumbnails are passed to <img> as data URLs so the
+      // renderer does not need direct file:// access.
       arrayBufferToBase64(new Uint8Array(buffer), (base64) => {
         const image = "data:image/png;base64," + base64;
         return resolve(image);
@@ -84,6 +90,8 @@ export async function getImageFile(path) {
 }
 
 export function arrayBufferToBase64(buffer, callback) {
+  // FileReader is available in the renderer and avoids pulling in another
+  // dependency just to encode thumbnail bytes.
   const blob = new Blob([buffer], {
     type: "application/octet-binary",
   });

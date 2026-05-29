@@ -115,9 +115,9 @@ export default defineComponent({
       platform = "";
 
     onBeforeMount(async () => {
-      // get path separator for this system
+      // The first renderer action is to ask the preload bridge for OS details.
+      // This keeps platform-specific filesystem logic out of Vue components.
       pathSep = await getSep();
-      // get system platform
       platform = await getPlatform();
 
       if (platform === "win32") {
@@ -130,10 +130,11 @@ export default defineComponent({
         selectedFolder.value = pathSep;
       }
 
-      // get root folders
+      // Seed both the content pane and the side tree from the selected root.
       const folders = await adjustFolders(await walkFolders(selectedFolder.value));
       folderTree.splice(0, folderTree.length, ...folders);
 
+      // Common locations are resolved by Electron's app.getPath in the main process.
       const shortcuts = await shortcutDirs();
 
       shortcutLinks.push({
@@ -179,9 +180,8 @@ export default defineComponent({
       });
     });
 
-    // if the currentDrive changes,
-    // then rescan the root folders of that drive
-    // applicable for Windows only
+    // Windows has multiple filesystem roots, so switching drives resets the
+    // side tree and content pane to the selected drive root.
     watch(currentDrive, async () => {
       selectedFolder.value = currentDrive.value + pathSep;
       const folders = await adjustFolders(await walkFolders(selectedFolder.value));
@@ -194,7 +194,8 @@ export default defineComponent({
     }
 
     async function filterContents(folders, sort = true) {
-      // add metadata and mimetype
+      // The content pane shows files and folders. MIME lookup happens through
+      // main-process IPC because it depends on local file paths.
       const filteredContent = await Promise.all(
         folders
           .filter((folder) => !folder.error)
@@ -218,11 +219,11 @@ export default defineComponent({
     }
 
     async function filterSideFolders(folders, sort = true) {
-      // filter folders
+      // The left QTree only needs directories. Each directory is marked lazy so
+      // child folders are scanned only when a user expands that node.
       const filteredFolders = await Promise.all(
         folders
           .filter((folder) => folder.children !== undefined)
-          // make folders with children lazy-loaded
           .map(async (folder) => {
             const absolutePath = folder.path + pathSep + folder.name;
             folder.lazy = !!folder.children;
@@ -236,11 +237,13 @@ export default defineComponent({
     }
 
     async function adjustFolders(folders) {
+      // One filesystem scan feeds two views: visible contents and tree branches.
       await filterContents(folders);
       return await filterSideFolders(folders, false);
     }
 
     async function onLazyLoad({ node, key, done, fail }) {
+      // QTree calls this only when an expandable directory is opened.
       lazyLoading.value = true;
       try {
         setSelectedFolder(node.path);
@@ -273,8 +276,8 @@ export default defineComponent({
     }
 
     async function onDblClicked(node) {
-      // This causes a drill-down if it's a folder
       if (node.isDir) {
+        // Double-clicking a folder drills into it; double-clicking a file opens it.
         store.viewType = "nodes";
         await onSelectedFolder(node.path);
         expandTree(node.path);
@@ -286,7 +289,8 @@ export default defineComponent({
     function setSelectedFolder(absolutePath) {
       selectedFolder.value = absolutePath;
       store.viewType = "nodes";
-      // handle windows drive
+      // Normalize Windows drive paths so "C:" becomes "C:\" and the drive
+      // selector stays in sync with breadcrumb/tree navigation.
       if (platform === "win32") {
         if (selectedFolder.value.charAt(absolutePath.length - 1) === ":") {
           selectedFolder.value += pathSep;
@@ -301,7 +305,8 @@ export default defineComponent({
       store.viewType = "nodes";
       setSelectedFolder(absolutePath);
       await filterContents(await walkFolders(absolutePath));
-      // in case this came from breadcrumbs component
+      // Breadcrumb selections may point to nodes that are not loaded yet, so
+      // expandTree walks down the path and triggers lazy loads as needed.
       expandTree(absolutePath);
     }
 
@@ -317,10 +322,9 @@ export default defineComponent({
       let path2 = "";
       let lastNodeKey;
 
-      // iterate through the path parts.
-      // This code will get the node. If the node is not found,
-      // it forces lazy-load by programmatically expanding
-      // the parent node.
+      // Walk path segments from root to leaf. If a segment has not been loaded,
+      // expanding the closest parent triggers QTree's lazy-load hook, then this
+      // function retries once loading is finished.
       for (let index = 0; index < parts.length; ++index) {
         if (parts[index].length === 0) {
           continue;

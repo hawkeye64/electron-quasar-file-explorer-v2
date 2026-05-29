@@ -7,11 +7,15 @@ import mime from "mime";
 import walkFolders from "./walkFolders.js";
 import windowsDrives from "./getWindowsDrives.js";
 
+// Every channel registered here is exposed through electron-preload.js. Keeping
+// filesystem work in the main process lets the renderer stay sandbox-friendly.
 export function useHandler() {
   ipcMain.handle("myShell:walkFolders", async (_event, requestedPath) => {
     const folders = [];
     for (const fileInfo of walkFolders(requestedPath)) {
       if (fileInfo.isDir && !fileInfo.error) {
+        // QTree treats children: [] as "expandable"; the renderer lazy-loads
+        // the actual children only when the user opens that branch.
         fileInfo.children = [];
       }
       folders.push(fileInfo);
@@ -35,6 +39,7 @@ export function useHandler() {
   });
 
   ipcMain.handle("myShell:shortcutFolders", async () => {
+    // app.getPath normalizes common OS folders across Windows, macOS, and Linux.
     const home = app.getPath("home");
     const desktop = app.getPath("desktop");
     const document = app.getPath("documents");
@@ -69,11 +74,12 @@ export function useHandler() {
   });
 
   ipcMain.handle("myShell:openFile", async (_event, requestedPath) => {
-    // open the file as specified by the user
+    // Delegate opening to the operating system's default application.
     return await shell.openPath(requestedPath);
   });
 
   ipcMain.handle("myShell:readFile", async (_event, requestedPath) => {
+    // Used by the renderer to create image thumbnails from local files.
     return readFileSync(requestedPath);
   });
 

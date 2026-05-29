@@ -28,7 +28,7 @@ export default defineComponent({
       image = ref(null);
 
     onBeforeMount(async () => {
-      // get the image representig this GridItem
+      // Pick either a bundled icon or an inline thumbnail for this file entry.
       image.value = await getImage();
     });
 
@@ -69,6 +69,8 @@ export default defineComponent({
           return basePath + "binary.png";
         } else if (type === "image") {
           if (subtype === "svg+xml") {
+            // Rendering arbitrary local SVG directly can execute unexpected
+            // content in some contexts, so show a generic image icon instead.
             return basePath + "image.png";
           }
           try {
@@ -80,12 +82,11 @@ export default defineComponent({
         }
       }
 
-      // is this a folder?
       if (props.node.isDir) {
         return basePath + "folder.png";
       }
 
-      // for all "unrecongized" types
+      // Fallback for unrecognized files.
       return basePath + "blank.png";
     }
 

@@ -164,7 +164,8 @@ export default defineComponent({
 
     function getSize(node) {
       if (node.isDir) {
-        // return node.metadata.size + ' Items'
+        // Directory sizes are expensive to calculate recursively, so this
+        // example leaves them blank instead of blocking the UI.
         return "";
       }
       return prettyBytes(node.metadata.size);
@@ -176,6 +177,8 @@ export default defineComponent({
     }
 
     function selectedStyleObject(node) {
+      // Selection is local to the content view; opening/navigation state lives
+      // in MainLayout and the shared explorer store.
       if (node === selectedNode.value) {
         return {
           backgroundColor: "#C0C0C0",

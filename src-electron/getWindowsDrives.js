@@ -8,9 +8,12 @@ function getWindowsDrives(callback) {
     throw new Error("getWindowsDrives called with no callback");
   }
   if (os.platform() !== "win32") {
-    throw new Error("getWindowsDrives called but process.plaform !== 'win32'");
+    throw new Error("getWindowsDrives called but process.platform !== 'win32'");
   }
   const drives = [];
+
+  // WMIC returns a table whose first row is headers. This demo keeps the drive
+  // discovery simple and validates each candidate before showing it.
   exec("wmic LOGICALDISK LIST BRIEF", (error, stdout) => {
     if (error) {
       callback(error, drives);

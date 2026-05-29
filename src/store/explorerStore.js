@@ -6,6 +6,8 @@ export function useExplorerStore() {
 }
 
 export function provideExplorerStore() {
+  // This small provide/inject store keeps the example framework-light while
+  // still sharing content/list state across layout and view components.
   const store = {
     files: [],
     viewType: "nodes",

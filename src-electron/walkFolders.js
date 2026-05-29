@@ -2,11 +2,11 @@ import path from "node:path";
 import fse from "fs-extra";
 
 /**
- * Generator function that lists all files in a folder
- * in a synchronous fashion
+ * Lists one folder level at a time. The QTree requests deeper levels lazily,
+ * so the app stays responsive on large directory trees.
  *
  * @param {String} folder - folder to start with
- * @returns {IterableIterator<String>}
+ * @returns {IterableIterator<Object>}
  */
 function* walkFolders(folder) {
   try {
@@ -28,6 +28,8 @@ function* walkFolders(folder) {
         };
         yield retVal;
       } catch (err) {
+        // Yield per-file errors instead of failing the whole folder scan. The
+        // renderer can skip unreadable entries and still show the rest.
         const retVal = {
           path: path.join(folder, file),
           name: file,
@@ -37,6 +39,8 @@ function* walkFolders(folder) {
       }
     }
   } catch (err) {
+    // Folder-level errors are returned as data for the same reason: a bad path
+    // should not crash the main process.
     const retVal = {
       path: folder,
       error: err,

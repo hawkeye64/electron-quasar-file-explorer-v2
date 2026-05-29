@@ -83,14 +83,14 @@ export default defineComponent({
     );
 
     function onClick() {
+      // Browsers emit two click events before a dblclick. A short timer lets the
+      // parent treat single-click selection and double-click open separately.
       if (timer) {
         return;
       }
 
-      // emit the click
       emit("click", props.node);
 
-      // prevent multiple single-clicks
       timer = setTimeout(() => {
         clearTimeout(timer);
       }, delay);
@@ -100,6 +100,8 @@ export default defineComponent({
       if (timer) {
         clearTimeout(timer);
       }
+      // Vue event names are case-sensitive in JavaScript; keep the emitted name
+      // aligned with the parent listener used by this demo.
       // eslint-disable-next-line vue/custom-event-name-casing
       emit("dblClick", props.node);
     }

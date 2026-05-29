@@ -19,9 +19,12 @@
 import { contextBridge, ipcRenderer } from "electron";
 import { quasarRuntime } from "#q-app/electron/preload";
 
-// Set up context bridge between the renderer process and the main process
+// Quasar injects a tiny runtime bridge for framework-level Electron helpers.
 contextBridge.exposeInMainWorld("quasarRuntime", quasarRuntime);
 
+// Keep the public renderer API intentionally small. Components call
+// window.myShell.*, but they never receive ipcRenderer, shell, fs, or other
+// powerful Electron/Node objects directly.
 contextBridge.exposeInMainWorld("myShell", {
   openFile: (path) => ipcRenderer.invoke("myShell:openFile", path),
   walkFolders: (path) => ipcRenderer.invoke("myShell:walkFolders", path),
