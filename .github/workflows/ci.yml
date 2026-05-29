@@ -1,4 +1,4 @@
-name: CI
+name: Electron CI
 
 on:
   push:
@@ -8,17 +8,8 @@ on:
 
 jobs:
   verify:
-    runs-on: ${{ matrix.os }}
-    name: Node 24 / ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os:
-          - ubuntu-latest
-          - macos-latest
-          - windows-latest
-    env:
-      CSC_IDENTITY_AUTO_DISCOVERY: "false"
+    runs-on: ubuntu-latest
+    name: Verify
     steps:
       - uses: actions/checkout@v5
 
@@ -35,5 +26,37 @@ jobs:
       - name: Install Electron dependencies
         run: pnpm --dir src-electron install --frozen-lockfile
 
-      - name: Verify
-        run: pnpm verify
+      - name: Verify fast checks
+        run: pnpm verify:fast
+
+  build-electron:
+    needs: verify
+    runs-on: ${{ matrix.os }}
+    name: Build Electron / ${{ matrix.label }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - label: Linux
+            os: ubuntu-latest
+          - label: macOS
+            os: macos-latest
+          - label: Windows
+            os: windows-latest
+    env:
+      CSC_IDENTITY_AUTO_DISCOVERY: "false"
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Install renderer dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build Electron app
+        run: pnpm verify:build
