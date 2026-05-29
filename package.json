@@ -3,7 +3,7 @@
   "version": "3.0.1",
   "private": true,
   "description": "Explore your file system",
-  "author": "Jeff Galbraith <jgalbraith@intelliviewtech.com>",
+  "author": "Jeff Galbraith <galbraith64@gmail.com>",
   "type": "module",
   "scripts": {
     "clean": "rm -rf node_modules src-electron/node_modules dist .quasar",
