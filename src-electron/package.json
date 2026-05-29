@@ -5,7 +5,6 @@
   "description": "Electron runtime dependencies for File Explorer",
   "type": "module",
   "dependencies": {
-    "fs-extra": "^11.3.5",
     "mime": "^4.1.0"
   },
   "devDependencies": {

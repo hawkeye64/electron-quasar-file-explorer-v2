@@ -1,10 +1,10 @@
-import { app, BrowserWindow, nativeTheme } from "electron";
-import fs from "fs-extra";
-import os from "node:os";
+import { BrowserWindow, app, nativeTheme } from "electron";
+import { unlinkSync } from "node:fs";
 import path from "node:path";
+import os from "node:os";
 import { registerQuasarRuntime, resolveElectronAssetsPath } from "#q-app/electron/main";
 
-import { useHandler } from "./handler.js";
+import { useHandler } from "./handler";
 
 // The main process owns native Electron APIs, application lifecycle, and IPC.
 // Renderer code should reach this file only through the preload bridge.
@@ -16,14 +16,12 @@ try {
   // Electron can hold stale DevTools extension metadata on Windows dark mode.
   // Removing it keeps local development startup predictable.
   if (platform === "win32" && nativeTheme.shouldUseDarkColors === true) {
-    fs.unlinkSync(path.join(app.getPath("userData"), "DevTools Extensions"));
+    unlinkSync(path.join(app.getPath("userData"), "DevTools Extensions"));
   }
 } catch {}
 
-let mainWindow = null;
-
 async function createWindow() {
-  mainWindow = new BrowserWindow({
+  const mainWindow = new BrowserWindow({
     // resolveElectronAssetsPath handles the dev/build path difference for files
     // copied through Quasar's Electron asset pipeline.
     icon: resolveElectronAssetsPath("icons/icon.png"),
@@ -54,15 +52,11 @@ async function createWindow() {
       mainWindow?.webContents.closeDevTools();
     });
   }
-
-  mainWindow.on("closed", () => {
-    mainWindow = null;
-  });
 }
 
-void app.whenReady().then(() => {
+void app.whenReady().then(async () => {
   // Quasar's runtime wires aliases/assets used by Electron main/preload code.
-  registerQuasarRuntime();
+  await registerQuasarRuntime();
 
   // Register IPC channels before the renderer has a chance to call them.
   useHandler();

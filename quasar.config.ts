@@ -1,6 +1,6 @@
 import { defineConfig } from "#q-app";
 
-const devBundledElectronDeps = new Set(["fs-extra", "mime"]);
+const devBundledElectronDeps = new Set(["mime"]);
 
 function bundleElectronDepsForDev(cfg: { external?: unknown }, dev: boolean) {
   // Dev main/preload output runs from .quasar, so bundle src-electron deps that

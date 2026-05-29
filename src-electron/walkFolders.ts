@@ -1,51 +1,52 @@
+import { readdirSync, statSync, type Stats } from "node:fs";
 import path from "node:path";
-import fse from "fs-extra";
+
+export interface FileInfo {
+  path: string;
+  name?: string;
+  isDir?: boolean;
+  isSymLink?: boolean;
+  metadata?: Stats;
+  children?: FileInfo[];
+  error?: unknown;
+}
 
 /**
  * Lists one folder level at a time. The QTree requests deeper levels lazily,
  * so the app stays responsive on large directory trees.
- *
- * @param {String} folder - folder to start with
- * @returns {IterableIterator<Object>}
  */
-function* walkFolders(folder) {
+function* walkFolders(folder: string): IterableIterator<FileInfo> {
   try {
-    const files = fse.readdirSync(folder);
+    const files = readdirSync(folder);
     for (const file of files) {
       try {
         const pathToFile = path.join(folder, file);
-        const stat = fse.statSync(pathToFile);
+        const stat = statSync(pathToFile);
 
-        const isDirectory = stat.isDirectory();
-        const isSymbolicLink = stat.isSymbolicLink();
-
-        const retVal = {
+        yield {
           path: pathToFile,
           name: file,
-          isDir: isDirectory,
-          isSymLink: isSymbolicLink,
+          isDir: stat.isDirectory(),
+          isSymLink: stat.isSymbolicLink(),
           metadata: stat,
         };
-        yield retVal;
       } catch (err) {
         // Yield per-file errors instead of failing the whole folder scan. The
         // renderer can skip unreadable entries and still show the rest.
-        const retVal = {
+        yield {
           path: path.join(folder, file),
           name: file,
           error: err,
         };
-        yield retVal;
       }
     }
   } catch (err) {
     // Folder-level errors are returned as data for the same reason: a bad path
     // should not crash the main process.
-    const retVal = {
+    yield {
       path: folder,
       error: err,
     };
-    yield retVal;
   }
 }
 
