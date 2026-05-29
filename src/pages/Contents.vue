@@ -96,7 +96,7 @@ export default defineComponent({
           name: "type",
           required: true,
           label: "Type",
-          field: "label",
+          field: (row) => row.mimetype || (row.isDir ? "inode/directory" : ""),
           align: "center",
           sortable: false,
           style: "max-width: 50px;",
@@ -106,7 +106,7 @@ export default defineComponent({
           name: "label",
           required: true,
           label: "Name",
-          field: "label",
+          field: "name",
           align: "left",
           sortable: true,
           style: "width: 100%",
@@ -115,22 +115,20 @@ export default defineComponent({
         {
           name: "size",
           label: "Size",
-          field: (row) => row.data,
-          format: getSize,
+          field: (row) => row.metadata?.size || 0,
+          format: (_value, row) => getSize(row),
           align: "right",
           sortable: true,
-          sort: (a, b) => parseInt(a.stat.size) - parseInt(b.stat.size),
           style: "max-width: 80px; min-width: 80px;",
           headerStyle: "max-width: 80px; min-width: 80px;",
         },
         {
           name: "modified",
           label: "Modified",
-          field: (row) => row.data,
-          format: getModified,
+          field: (row) => row.metadata?.mtimeMs || 0,
+          format: (_value, row) => getModified(row),
           align: "left",
           sortable: true,
-          sort: (a, b) => parseFloat(a.stat.mtimeMs) - parseFloat(b.stat.mtimeMs),
           style: "max-width: 150px; min-width: 150px;",
           headerStyle: "max-width: 150px; min-width: 150px;",
         },
@@ -138,7 +136,7 @@ export default defineComponent({
       pagination = reactive({
         page: 1,
         rowsPerPage: 0,
-        sortBy: "name",
+        sortBy: "label",
         descending: false,
       });
 
@@ -168,11 +166,11 @@ export default defineComponent({
         // example leaves them blank instead of blocking the UI.
         return "";
       }
-      return prettyBytes(node.metadata.size);
+      return prettyBytes(node.metadata?.size || 0);
     }
 
     function getModified(node) {
-      if (node.metadata.mtime.valueOf() === 0) return "";
+      if (!node.metadata?.mtime || node.metadata.mtime.valueOf() === 0) return "";
       return date.formatDate(node.metadata.mtime, "YYYY-MM-DD hh:mm:ss");
     }
 
