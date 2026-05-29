@@ -9,6 +9,7 @@
     "clean": "rm -rf node_modules src-electron/node_modules dist .quasar",
     "dev": "node scripts/dev-electron.mjs",
     "build": "quasar build -m electron",
+    "build:ci": "quasar build -m electron --publish never",
     "electron:install": "pnpm --dir src-electron install",
     "lint": "oxlint --ignore-path .oxlintignore .",
     "lint:fix": "oxlint --ignore-path .oxlintignore --fix .",
@@ -17,7 +18,7 @@
     "typecheck": "vue-tsc --project tsconfig.vue-tsc.json --noEmit",
     "test": "echo \"No test specified\" && exit 0",
     "verify:fast": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm test",
-    "verify:build": "pnpm --dir src-electron install --frozen-lockfile && pnpm build",
+    "verify:build": "pnpm --dir src-electron install --frozen-lockfile && pnpm build:ci",
     "verify": "pnpm verify:fast && pnpm verify:build",
     "deep": "ncu --configFilePath . --packageFile '{package.json,src-electron/package.json}'",
     "postinstall": "quasar prepare --silent"
