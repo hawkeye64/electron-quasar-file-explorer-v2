@@ -1,7 +1,17 @@
 const devBundledElectronDeps = new Set(["mime"]);
 
+const electronRuntimeAliases = {
+  "#q-app/electron/main": "@quasar/app-vite/electron/main",
+  "#q-app/electron/preload": "@quasar/app-vite/electron/preload",
+};
+
+type ElectronAlias = Record<string, string> | Array<{ find: string; replacement: string }>;
+
 interface ElectronBuildConfig {
   external?: unknown;
+  resolve?: {
+    alias?: ElectronAlias;
+  };
 }
 
 interface QuasarConfigContext {
@@ -18,6 +28,26 @@ function bundleElectronDepsForDev(cfg: ElectronBuildConfig, dev: boolean) {
   cfg.external = cfg.external.filter((dependency) => {
     return typeof dependency !== "string" || devBundledElectronDeps.has(dependency) !== true;
   });
+}
+
+function addElectronRuntimeAliases(cfg: ElectronBuildConfig) {
+  cfg.resolve ??= {};
+
+  if (Array.isArray(cfg.resolve.alias)) {
+    cfg.resolve.alias.unshift(
+      { find: "#q-app/electron/main", replacement: electronRuntimeAliases["#q-app/electron/main"] },
+      {
+        find: "#q-app/electron/preload",
+        replacement: electronRuntimeAliases["#q-app/electron/preload"],
+      },
+    );
+    return;
+  }
+
+  cfg.resolve.alias = {
+    ...cfg.resolve.alias,
+    ...electronRuntimeAliases,
+  };
 }
 
 export default function (ctx: QuasarConfigContext) {
@@ -72,10 +102,12 @@ export default function (ctx: QuasarConfigContext) {
       bundler: "builder",
 
       extendElectronMainConf(cfg: ElectronBuildConfig) {
+        addElectronRuntimeAliases(cfg);
         bundleElectronDepsForDev(cfg, ctx.dev === true);
       },
 
       extendElectronPreloadConf(cfg: ElectronBuildConfig) {
+        addElectronRuntimeAliases(cfg);
         bundleElectronDepsForDev(cfg, ctx.dev === true);
       },
 
