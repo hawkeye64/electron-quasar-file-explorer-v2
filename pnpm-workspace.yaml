@@ -7,6 +7,8 @@ allowBuilds:
 
 minimumReleaseAgeExclude:
   - "@quasar/app-vite@3.0.0-beta.33"
+  - "@clack/core"
+  - "@clack/prompts"
   - "@quasar/extras@2.0.0"
   - "@quasar/render-ssr-error@2.2.3"
   - "@quasar/vite-plugin@1.12.0"

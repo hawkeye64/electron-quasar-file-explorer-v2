@@ -43,8 +43,8 @@
   },
   "engines": {
     "node": ">=24.14.1",
-    "pnpm": ">=11.4.0"
+    "pnpm": ">=11.5.0"
   },
-  "packageManager": "pnpm@11.4.0",
+  "packageManager": "pnpm@11.5.0",
   "productName": "File Explorer"
 }
