@@ -1,5 +1,3 @@
-/// <reference types="@quasar/app-vite/client" />
-
 interface FileExplorerShell {
   openFile: (path: string) => Promise<string>;
   walkFolders: (path: string) => Promise<FileExplorerNode[]>;

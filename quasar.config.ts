@@ -1,8 +1,10 @@
-import { defineConfig } from "@quasar/app-vite";
+import { defineConfig } from "#q-app";
 
 const devBundledElectronDeps = new Set(["fs-extra", "mime"]);
 
 function bundleElectronDepsForDev(cfg: { external?: unknown }, dev: boolean) {
+  // Dev main/preload output runs from .quasar, so bundle src-electron deps that
+  // would otherwise resolve only from src-electron/node_modules.
   if (dev !== true || Array.isArray(cfg.external) !== true) {
     return;
   }
@@ -25,6 +27,11 @@ export default defineConfig((ctx) => {
         node: "node24",
       },
 
+      typescript: {
+        strict: true,
+        vueShim: true,
+      },
+
       vueRouterMode: "hash",
 
       vitePlugins: [
@@ -40,7 +47,6 @@ export default defineConfig((ctx) => {
 
     devServer: {
       open: true,
-      port: 8080,
     },
 
     framework: {

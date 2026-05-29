@@ -8,6 +8,17 @@ This File Explorer now uses Quasar v2 and Vue 3 composition API.
 
 This is a rudimentary File Explorer that works for Windows, Mac and Linux systems.
 
+## Current Stack
+
+- Quasar `2.19.x`
+- `@quasar/app-vite` `3.0.0-beta`
+- Vue `3.5.x`
+- Electron `42.x`
+- Node `24.x`
+- pnpm `11.x`
+
+Electron runtime dependencies live in `src-electron/package.json`, while renderer dependencies live in the root `package.json`. This mirrors the current Quasar app-vite Electron setup and keeps packaged Electron dependencies separate from the browser app.
+
 ## Install
 
 ```bash
@@ -20,6 +31,8 @@ pnpm electron:install
 ```bash
 pnpm dev
 ```
+
+The dev command removes an inherited `ELECTRON_RUN_AS_NODE` environment variable before launching Quasar. If that variable leaks in from a parent shell, Electron starts like plain Node and its main-process APIs are unavailable.
 
 ## Verify
 
@@ -35,7 +48,7 @@ pnpm build
 
 Items that have been added since the last tutorial:
 
-- Double-click to open a file based on it's type
+- Double-click to open a file based on its type
 
 Removed since last tutorial:
 
@@ -50,7 +63,7 @@ For example:
 - plug and play drives (ie: USBs)
 - and others
 
-Feel free to PR if you like to make it better for others.
+Feel free to PR if you would like to make it better for others.
 
 ## Sponsor
 
@@ -62,4 +75,4 @@ PayPal: https://paypal.me/hawkeye64
 
 ## License
 
-MIT (c) Jeff Galbraith <<jeff@quasar.dev>>
+MIT (c) Jeff Galbraith <<galbraith64@gmail.com>>
