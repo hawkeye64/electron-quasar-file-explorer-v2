@@ -1,5 +1,5 @@
-const path = require('path')
-const fse = require('fs-extra')
+import path from "node:path";
+import fse from "fs-extra";
 
 /**
  * Generator function that lists all files in a folder
@@ -8,44 +8,41 @@ const fse = require('fs-extra')
  * @param {String} folder - folder to start with
  * @returns {IterableIterator<String>}
  */
-function *walkFolders (folder) {
+function* walkFolders(folder) {
   try {
-    const files = fse.readdirSync(folder)
+    const files = fse.readdirSync(folder);
     for (const file of files) {
       try {
-        const pathToFile = path.join(folder, file)
-        const stat = fse.statSync(pathToFile)
+        const pathToFile = path.join(folder, file);
+        const stat = fse.statSync(pathToFile);
 
-        const isDirectory = stat.isDirectory()
-        const isSymbolicLink = stat.isSymbolicLink()
+        const isDirectory = stat.isDirectory();
+        const isSymbolicLink = stat.isSymbolicLink();
 
         const retVal = {
           path: pathToFile,
           name: file,
           isDir: isDirectory,
           isSymLink: isSymbolicLink,
-          metadata: stat
-        }
-        yield retVal
-      }
-      catch (err) {
+          metadata: stat,
+        };
+        yield retVal;
+      } catch (err) {
         const retVal = {
           path: path.join(folder, file),
           name: file,
-          error: err
-        }
-        yield retVal
+          error: err,
+        };
+        yield retVal;
       }
     }
-  }
-  catch (err) {
+  } catch (err) {
     const retVal = {
       path: folder,
-      error: err
-
-    }
-    yield retVal
+      error: err,
+    };
+    yield retVal;
   }
 }
 
-export default walkFolders
+export default walkFolders;

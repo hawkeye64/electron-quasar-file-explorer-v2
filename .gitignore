@@ -1,10 +1,12 @@
 .DS_Store
 .thumbs.db
 node_modules
+src-electron/node_modules
 
 # Quasar core related directories
 .quasar
 /dist
+/quasar.config.*.temporary.compiled*
 
 # Cordova related directories and files
 /src-cordova/node_modules
@@ -22,6 +24,7 @@ node_modules
 
 # Log files
 npm-debug.log*
+pnpm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 

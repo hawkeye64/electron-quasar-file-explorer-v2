@@ -1,48 +1,47 @@
-import { app, ipcMain, shell } from 'electron'
-import path from 'path'
-import os from 'os'
-import { pathExists, readFileSync } from 'fs-extra'
-import mime from 'mime'
+import { app, ipcMain, shell } from "electron";
+import os from "node:os";
+import path from "node:path";
+import { pathExists, readFileSync } from "fs-extra";
+import mime from "mime";
 
-import walkFolders from './walkFolders'
-import windowsDrives from './getWindowsDrives'
+import walkFolders from "./walkFolders.js";
+import windowsDrives from "./getWindowsDrives.js";
 
-export function useHandler () {
-  ipcMain.handle('myShell:walkFolders', async (event, path) => {
-    const folders = []
-    for (const fileInfo of walkFolders(path, 0)) {
+export function useHandler() {
+  ipcMain.handle("myShell:walkFolders", async (_event, requestedPath) => {
+    const folders = [];
+    for (const fileInfo of walkFolders(requestedPath)) {
       if (fileInfo.isDir && !fileInfo.error) {
-        fileInfo.children = []
+        fileInfo.children = [];
       }
-      folders.push(fileInfo)
+      folders.push(fileInfo);
     }
-    return folders
-  })
+    return folders;
+  });
 
-  ipcMain.handle('myShell:windowsDrives', async () => {
+  ipcMain.handle("myShell:windowsDrives", async () => {
     return new Promise((resolve, reject) => {
-      const localDrives = []
+      const localDrives = [];
       windowsDrives((error, drives) => {
         if (!error) {
-          localDrives.splice(0, localDrives.length, ...drives)
-          resolve(localDrives)
+          localDrives.splice(0, localDrives.length, ...drives);
+          resolve(localDrives);
+        } else {
+          console.error(error);
+          reject(error);
         }
-        else {
-          console.error(error)
-          reject(error)
-        }
-      })
-    })
-  })
+      });
+    });
+  });
 
-  ipcMain.handle('myShell:shortcutFolders', async () => {
-    const home = app.getPath('home')
-    const desktop = app.getPath('desktop')
-    const document = app.getPath('documents')
-    const download = app.getPath('downloads')
-    const picture = app.getPath('pictures')
-    const audio = app.getPath('music')
-    const video = app.getPath('videos')
+  ipcMain.handle("myShell:shortcutFolders", async () => {
+    const home = app.getPath("home");
+    const desktop = app.getPath("desktop");
+    const document = app.getPath("documents");
+    const download = app.getPath("downloads");
+    const picture = app.getPath("pictures");
+    const audio = app.getPath("music");
+    const video = app.getPath("videos");
 
     const shortcuts = {
       home,
@@ -51,34 +50,34 @@ export function useHandler () {
       download,
       picture,
       audio,
-      video
-    }
+      video,
+    };
 
-    return shortcuts
-  })
+    return shortcuts;
+  });
 
-  ipcMain.handle('myShell:sep', async () => {
-    return path.sep
-  })
+  ipcMain.handle("myShell:sep", async () => {
+    return path.sep;
+  });
 
-  ipcMain.handle('myShell:platform', async () => {
-    return os.platform()
-  })
+  ipcMain.handle("myShell:platform", async () => {
+    return os.platform();
+  });
 
-  ipcMain.handle('myShell:pathExists', async (event, path) => {
-    return await pathExists(path)
-  })
+  ipcMain.handle("myShell:pathExists", async (_event, requestedPath) => {
+    return await pathExists(requestedPath);
+  });
 
-  ipcMain.handle('myShell:openFile', async (event, path) => {
+  ipcMain.handle("myShell:openFile", async (_event, requestedPath) => {
     // open the file as specified by the user
-    return await shell.openPath(path)
-  })
+    return await shell.openPath(requestedPath);
+  });
 
-  ipcMain.handle('myShell:readFile', async (event, path) => {
-    return readFileSync(path)
-  })
+  ipcMain.handle("myShell:readFile", async (_event, requestedPath) => {
+    return readFileSync(requestedPath);
+  });
 
-  ipcMain.handle('myShell:getMimeType', async (event, path) => {
-    return mime.lookup(path)
-  })
+  ipcMain.handle("myShell:getMimeType", async (_event, requestedPath) => {
+    return mime.getType(requestedPath);
+  });
 }

@@ -12,7 +12,7 @@
  * @callback callback Returns '{ type, payload }'
  * @returns stopWatching function - when called stops watching the path
  */
-export async function pathWatch (path, recursive = true, callback) {
+export async function pathWatch(_path, _recursive = true, _callback) {
   // TBD
 }
 
@@ -24,7 +24,7 @@ export async function pathWatch (path, recursive = true, callback) {
  * @callback callback Returns { path, operation, cookie }
  * @returns stopWatching function - when called stops watching the path
  */
-export async function pathWatchImmediate (path, recursive = false, callback) {
+export async function pathWatchImmediate(_path, _recursive = false, _callback) {
   // TBD
 }
 
@@ -35,16 +35,16 @@ export async function pathWatchImmediate (path, recursive = false, callback) {
  * @param {String} folder - folder to start with
  * @returns array of '{ children: [] (optional), name: string, path: string }'
  */
-export async function walkFolders (path) {
-  return await myShell.walkFolders(path)
+export async function walkFolders(path) {
+  return await myShell.walkFolders(path);
 }
 
-export async function windowsDrives () {
-  return await myShell.windowsDrives()
+export async function windowsDrives() {
+  return await myShell.windowsDrives();
 }
 
-export async function shortcutDirs () {
-  return await myShell.shortcutFolders()
+export async function shortcutDirs() {
+  return await myShell.shortcutFolders();
 }
 
 /**
@@ -52,50 +52,49 @@ export async function shortcutDirs () {
  * '\' on Windows
  * '/' on POSIX
  */
-export async function getSep () {
-  return await myShell.sep()
+export async function getSep() {
+  return await myShell.sep();
 }
 
-export async function openFile (path) {
-  return await myShell.openFile(path)
+export async function openFile(path) {
+  return await myShell.openFile(path);
 }
 
-export async function getPlatform () {
-  return await myShell.platform()
+export async function getPlatform() {
+  return await myShell.platform();
 }
 
-export async function pathExists (path) {
-  return await myShell.pathExists(path)
+export async function pathExists(path) {
+  return await myShell.pathExists(path);
 }
 
-export async function readFile (path) {
-  return await myShell.readFile(path)
+export async function readFile(path) {
+  return await myShell.readFile(path);
 }
 
-export async function getImageFile (path) {
+export async function getImageFile(path) {
   return new Promise((resolve) => {
-    myShell.readFile(path)
-      .then(buffer => {
-        arrayBufferToBase64(new Uint8Array(buffer), base64 => {
-          const image = 'data:image/png;base64,' + base64
-          return resolve(image)
-        })
-      })
-  })
+    myShell.readFile(path).then((buffer) => {
+      arrayBufferToBase64(new Uint8Array(buffer), (base64) => {
+        const image = "data:image/png;base64," + base64;
+        return resolve(image);
+      });
+    });
+  });
 }
 
-export function arrayBufferToBase64 (buffer, callback) {
+export function arrayBufferToBase64(buffer, callback) {
   const blob = new Blob([buffer], {
-    type: 'application/octet-binary'
-  })
-  const reader = new FileReader()
+    type: "application/octet-binary",
+  });
+  const reader = new FileReader();
   reader.onload = function (evt) {
-    const dataurl = evt.target.result
-    callback(dataurl.substr(dataurl.indexOf(',') + 1))
-  }
-  reader.readAsDataURL(blob)
+    const dataurl = evt.target.result;
+    callback(dataurl.substr(dataurl.indexOf(",") + 1));
+  };
+  reader.readAsDataURL(blob);
 }
 
-export async function getMimeType (path) {
-  return await myShell.getMimeType(path)
+export async function getMimeType(path) {
+  return await myShell.getMimeType(path);
 }

@@ -5,111 +5,103 @@
     @dblclick.prevent="onDblClick"
     @click="onClick"
   >
-    <div
-      class="griditemimage"
-      :style="gridItemImageStyleObject"
-    >
-      <grid-item-image
-        :node="node"
-        :width="width"
-      />
+    <div class="griditemimage" :style="gridItemImageStyleObject">
+      <grid-item-image :node="node" :width="width" />
     </div>
-    <div
-      class="griditemtext"
-      :style="gridItemTextStyleObject"
-    >
+    <div class="griditemtext" :style="gridItemTextStyleObject">
       {{ node.name }}
     </div>
   </div>
 </template>
 
 <script>
-import { defineComponent, computed, watch } from 'vue'
-import GridItemImage from './GridItemImage.vue'
+import { defineComponent, computed, watch } from "vue";
+import GridItemImage from "./GridItemImage.vue";
 
 export default defineComponent({
-  name: 'GridItem',
+  name: "GridItem",
 
   components: {
-    GridItemImage
+    GridItemImage,
   },
 
   props: {
     node: {
-      type: Object
+      type: Object,
     },
     selectedNode: {
-      type: Object
+      type: Object,
     },
     viewType: {
-      type: String
-    }
+      type: String,
+    },
   },
-  emits: [ 'click', 'dblClick' ],
+  emits: ["click", "dblClick"],
 
-  setup (props, { emit }) {
-    const
-      width = 75,
+  setup(props, { emit }) {
+    const width = 75,
       fontSize = 12,
-      delay = 200
-    let timer = null
+      delay = 200;
+    let timer = null;
 
     const gridItemContainerStyleObject = computed(() => {
       if (props.node === props.selectedNode) {
         // current node is selected
         return {
-          backgroundColor: '#C0C0C0',
-          width: width + 'px'
-        }
-      }
-      else {
+          backgroundColor: "#C0C0C0",
+          width: width + "px",
+        };
+      } else {
         return {
-          backgroundColor: 'inherit',
-          width: width + 'px'
-        }
+          backgroundColor: "inherit",
+          width: width + "px",
+        };
       }
-    })
+    });
 
     const gridItemImageStyleObject = computed(() => {
       return {
-        width: width + 'px',
-        height: width + 'px'
-      }
-    })
+        width: width + "px",
+        height: width + "px",
+      };
+    });
 
     const gridItemTextStyleObject = computed(() => {
       return {
-        fontSize: fontSize + 'px'
-      }
-    })
+        fontSize: fontSize + "px",
+      };
+    });
 
-    watch(() => props.viewType, (val) => {
-      if (props.viewType === 'nodes' && (props.node === props.selectedNode)) {
-        // TODO: Jeff
-        // this.$el.scrollIntoView()
-      }
-    })
+    watch(
+      () => props.viewType,
+      (val) => {
+        if (props.viewType === "nodes" && props.node === props.selectedNode) {
+          // TODO: Jeff
+          // this.$el.scrollIntoView()
+        }
+      },
+    );
 
-    function onClick () {
+    function onClick() {
       if (timer) {
-        return
+        return;
       }
 
       // emit the click
-      emit('click', props.node)
+      emit("click", props.node);
 
       // prevent multiple single-clicks
       timer = setTimeout(() => {
-        clearTimeout(timer)
-      }, delay)
+        clearTimeout(timer);
+      }, delay);
     }
 
-    function onDblClick () {
+    function onDblClick() {
       if (timer) {
-        clearTimeout(timer)
+        clearTimeout(timer);
       }
       // eslint-disable-next-line vue/custom-event-name-casing
-      emit('dblClick', props.node)
+      emit("dblClick", props.node);
     }
 
     return {
@@ -118,34 +110,37 @@ export default defineComponent({
       gridItemImageStyleObject,
       gridItemTextStyleObject,
       onClick,
-      onDblClick
-    }
-  }
-})
+      onDblClick,
+    };
+  },
+});
 </script>
 
 <style scoped>
 .selected {
-  background-color: '#C0C0C0';
+  background-color: "#C0C0C0";
 }
 .griditemcontainer {
   margin: 5px;
   height: auto;
   word-wrap: break-word;
   border-radius: 4px;
-  -webkit-transition: 'all 0.5s ease-in-out';
-  transition: 'all 0.5s ease-in-out';
+  -webkit-transition: "all 0.5s ease-in-out";
+  transition: "all 0.5s ease-in-out";
 }
 .griditemcontainer:hover {
-  background-color: rgba(0, 0, 0, .05);
-  box-shadow: 0 1px 5px rgba(0,0,0,0.2), 0 2px 2px rgba(0,0,0,0.14), 0 3px 1px -2px rgba(0,0,0,0.12);
-  -webkit-transition: 'all 0.5s ease-in-out';
-  transition: 'all 0.5s ease-in-out';
+  background-color: rgba(0, 0, 0, 0.05);
+  box-shadow:
+    0 1px 5px rgba(0, 0, 0, 0.2),
+    0 2px 2px rgba(0, 0, 0, 0.14),
+    0 3px 1px -2px rgba(0, 0, 0, 0.12);
+  -webkit-transition: "all 0.5s ease-in-out";
+  transition: "all 0.5s ease-in-out";
 }
 .griditemimage {
-  display:flex;
-  align-items:center;
-  justify-content:center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 .griditemimage:hover {
   -webkit-filter: brightness(108%);

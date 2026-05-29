@@ -6,24 +6,20 @@
   "configurations": [
     {
       "name": "Launch quasar dev -m electron",
-      "program": "${workspaceFolder}/node_modules/@quasar/app/bin/quasar-dev",
+      "program": "${workspaceFolder}/node_modules/@quasar/app-vite/bin/quasar",
       "args": ["dev", "-m", "electron"],
       "cwd": "${workspaceFolder}",
       "request": "launch",
-      "skipFiles": [
-        "<node_internals>/**"
-      ],
+      "skipFiles": ["<node_internals>/**"],
       "type": "pwa-node"
     },
     {
       "name": "Launch quasar build -m electron",
-      "program": "${workspaceFolder}/node_modules/@quasar/app/bin/quasar",
+      "program": "${workspaceFolder}/node_modules/@quasar/app-vite/bin/quasar",
       "args": ["build", "-m", "electron"],
       "cwd": "${workspaceFolder}",
       "request": "launch",
-      "skipFiles": [
-        "<node_internals>/**"
-      ],
+      "skipFiles": ["<node_internals>/**"],
       "type": "pwa-node"
     }
   ]

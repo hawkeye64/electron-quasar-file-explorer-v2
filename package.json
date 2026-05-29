@@ -1,55 +1,49 @@
 {
   "name": "electron-quasar-file-explorer-v2",
   "version": "3.0.1",
-  "description": "Explore your file system",
-  "productName": "File Explorer",
-  "author": "Jeff Galbraith <jgalbraith@intelliviewtech.com>",
   "private": true,
+  "description": "Explore your file system",
+  "author": "Jeff Galbraith <jgalbraith@intelliviewtech.com>",
+  "type": "module",
   "scripts": {
-    "clean": "rm -Rf yarn.lock node_modules",
+    "clean": "rm -rf node_modules src-electron/node_modules dist .quasar",
     "dev": "quasar dev -m electron",
     "build": "quasar build -m electron",
-    "lint": "eslint --ext .js,.ts,.vue src src-electron",
-    "test": "echo \"No test specified\" && exit 0"
+    "electron:install": "pnpm --dir src-electron install",
+    "lint": "oxlint --ignore-path .oxlintignore .",
+    "lint:fix": "oxlint --ignore-path .oxlintignore --fix .",
+    "format": "oxfmt --ignore-path .oxfmtignore .",
+    "format:check": "oxfmt --check --ignore-path .oxfmtignore .",
+    "typecheck": "vue-tsc --project tsconfig.vue-tsc.json --noEmit",
+    "test": "echo \"No test specified\" && exit 0",
+    "verify:fast": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm test",
+    "verify:build": "pnpm --dir src-electron install --frozen-lockfile && pnpm build",
+    "verify": "pnpm verify:fast && pnpm verify:build",
+    "deep": "ncu --configFilePath . --packageFile '{package.json,src-electron/package.json}'",
+    "postinstall": "quasar prepare --silent"
   },
   "dependencies": {
-    "@quasar/extras": "^1.13.5",
-    "core-js": "^3.22.0",
-    "fs-extra": "^10.1.0",
-    "node-polyfill-webpack-plugin": "^1.1.4",
-    "pretty-bytes": "^6.0.0",
-    "quasar": "^2.6.6",
-    "vue": "^3.0.0",
-    "vue-router": "^4.0.0"
+    "@quasar/extras": "2.0.0",
+    "pretty-bytes": "^7.1.0",
+    "quasar": "2.19.3",
+    "vue": "3.5.35",
+    "vue-router": "5.1.0"
   },
   "devDependencies": {
-    "@babel/eslint-parser": "^7.17.0",
-    "@quasar/app": "^3.3.3",
-    "electron": "^18.0.4",
-    "electron-builder": "^23.0.3",
-    "electron-packager": "^15.4.0",
-    "eslint": "^8.13.0",
-    "eslint-config-standard": "^16.0.3",
-    "eslint-plugin-import": "^2.26.0",
-    "eslint-plugin-node": "^11.1.0",
-    "eslint-plugin-promise": "^6.0.0",
-    "eslint-plugin-vue": "^8.6.0",
-    "eslint-webpack-plugin": "^3.1.1"
+    "@quasar/app-vite": "3.0.0-beta.32",
+    "@types/node": "^25.9.1",
+    "autoprefixer": "^10.5.0",
+    "npm-check-updates": "^22.2.1",
+    "oxfmt": "^0.52.0",
+    "oxlint": "^1.67.0",
+    "typescript": "~6.0.3",
+    "vite-plugin-checker": "^0.14.1",
+    "vue-tsc": "^3.3.2"
   },
-  "browserslist": [
-    "last 10 Chrome versions",
-    "last 10 Firefox versions",
-    "last 4 Edge versions",
-    "last 7 Safari versions",
-    "last 8 Android versions",
-    "last 8 ChromeAndroid versions",
-    "last 8 FirefoxAndroid versions",
-    "last 10 iOS versions",
-    "last 5 Opera versions"
-  ],
   "engines": {
-    "node": ">= 12.22.1",
-    "npm": ">= 6.13.4",
-    "yarn": ">= 1.21.1"
-  }
+    "node": ">=24.14.1",
+    "pnpm": ">=11.4.0"
+  },
+  "packageManager": "pnpm@11.4.0",
+  "productName": "File Explorer"
 }

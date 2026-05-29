@@ -1,0 +1,4 @@
+dist
+.quasar
+node_modules
+src-electron/node_modules

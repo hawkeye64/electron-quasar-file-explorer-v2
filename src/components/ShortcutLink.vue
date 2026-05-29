@@ -1,12 +1,6 @@
 <template>
-  <q-item
-    clickable
-    @click="onClick"
-  >
-    <q-item-section
-      v-if="icon"
-      avatar
-    >
+  <q-item clickable @click="onClick">
+    <q-item-section v-if="icon" avatar>
       <q-icon :name="icon" />
     </q-item-section>
 
@@ -17,42 +11,42 @@
 </template>
 
 <script>
-import { defineComponent } from 'vue'
+import { defineComponent } from "vue";
 
 export default defineComponent({
-  name: 'ShortcutLink',
+  name: "ShortcutLink",
 
   props: {
     name: {
       type: String,
-      required: true
+      required: true,
     },
 
     path: {
       type: String,
-      default: ''
+      default: "",
     },
 
     icon: {
       type: String,
-      default: ''
-    }
+      default: "",
+    },
   },
 
-  emits: ['shortcut'],
+  emits: ["shortcut"],
 
-  setup (props, { emit }) {
-    function onClick () {
+  setup(props, { emit }) {
+    function onClick() {
       const shortcut = {
         name: props.name,
-        path: props.path
-      }
-      emit('shortcut', shortcut)
+        path: props.path,
+      };
+      emit("shortcut", shortcut);
     }
 
     return {
-      onClick
-    }
-  }
-})
+      onClick,
+    };
+  },
+});
 </script>

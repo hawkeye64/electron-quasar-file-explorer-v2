@@ -1,17 +1,8 @@
 <template>
-  <div
-    v-if="contents && contents.length"
-    class="contents-container"
-  >
+  <div v-if="contents && contents.length" class="contents-container">
     <div class="contents-wrapper">
-      <div
-        v-if="listType === 'grid'"
-        class="row justify-left"
-      >
-        <template
-          v-for="node in contents"
-          :key="node.path"
-        >
+      <div v-if="listType === 'grid'" class="row justify-left">
+        <template v-for="node in contents" :key="node.path">
           <grid-item
             :node="node"
             :selected-node="selectedNode"
@@ -23,11 +14,7 @@
         </template>
       </div>
 
-      <div
-        v-if="listType === 'list'"
-        id="content-scroll"
-        style="min-height: 100%;"
-      >
+      <div v-if="listType === 'list'" id="content-scroll" style="min-height: 100%">
         <q-table
           id="content"
           v-model:pagination="pagination"
@@ -39,7 +26,7 @@
           row-key="path"
           separator="none"
           class="no-border-radius my-sticky-header-table"
-          style="min-height: 100%;"
+          style="min-height: 100%"
         >
           <template #body="props">
             <q-tr
@@ -50,33 +37,16 @@
               @click.stop="rowClick(props.row)"
               @dblclick.stop="dblRowClick(props.row)"
             >
-              <q-td
-                key="type"
-                :props="props"
-                :style="'width: ' + imageWidth + 'px;'"
-              >
-                <grid-item-image
-                  :key="props.row.path"
-                  :node="props.row"
-                  :width="imageWidth"
-                />
+              <q-td key="type" :props="props" :style="'width: ' + imageWidth + 'px;'">
+                <grid-item-image :key="props.row.path" :node="props.row" :width="imageWidth" />
               </q-td>
-              <q-td
-                key="label"
-                :props="props"
-              >
+              <q-td key="label" :props="props">
                 {{ props.row.name }}
               </q-td>
-              <q-td
-                key="size"
-                :props="props"
-              >
+              <q-td key="size" :props="props">
                 {{ getSize(props.row) }}
               </q-td>
-              <q-td
-                key="modified"
-                :props="props"
-              >
+              <q-td key="modified" :props="props">
                 {{ getModified(props.row) }}
               </q-td>
             </q-tr>
@@ -88,139 +58,137 @@
 </template>
 
 <script>
-import { defineComponent, ref, reactive } from 'vue'
-import { date } from 'quasar'
-import { useExplorerStore } from '../store/explorerStore.js'
-import prettyBytes from 'pretty-bytes'
-import GridItem from '../components/GridItem.vue'
-import GridItemImage from '../components/GridItemImage.vue'
+import { defineComponent, ref, reactive } from "vue";
+import { date } from "quasar";
+import { useExplorerStore } from "../store/explorerStore.js";
+import prettyBytes from "pretty-bytes";
+import GridItem from "../components/GridItem.vue";
+import GridItemImage from "../components/GridItemImage.vue";
 
 export default defineComponent({
-  name: 'Contents',
+  name: "Contents",
 
   components: {
     GridItem,
-    GridItemImage
+    GridItemImage,
   },
 
   props: {
     contents: {
-      type: Array
+      type: Array,
     },
     listType: {
-      type: String
+      type: String,
     },
     viewType: {
-      type: String
-    }
+      type: String,
+    },
   },
 
-  emits: [ 'click', 'dblClick' ],
+  emits: ["click", "dblClick"],
 
-  setup (props, { emit }) {
-    const
-      store = useExplorerStore(),
+  setup(props, { emit }) {
+    const store = useExplorerStore(),
       selectedNode = ref(null),
       imageWidth = 25,
       columns = reactive([
         {
-          name: 'type',
+          name: "type",
           required: true,
-          label: 'Type',
-          field: 'label',
-          align: 'center',
+          label: "Type",
+          field: "label",
+          align: "center",
           sortable: false,
-          style: 'max-width: 50px;',
-          headerStyle: 'max-width: 50px;'
+          style: "max-width: 50px;",
+          headerStyle: "max-width: 50px;",
         },
         {
-          name: 'label',
+          name: "label",
           required: true,
-          label: 'Name',
-          field: 'label',
-          align: 'left',
+          label: "Name",
+          field: "label",
+          align: "left",
           sortable: true,
-          style: 'width: 100%',
-          headerStyle: 'width: 100%'
+          style: "width: 100%",
+          headerStyle: "width: 100%",
         },
         {
-          name: 'size',
-          label: 'Size',
+          name: "size",
+          label: "Size",
           field: (row) => row.data,
           format: getSize,
-          align: 'right',
+          align: "right",
           sortable: true,
           sort: (a, b) => parseInt(a.stat.size) - parseInt(b.stat.size),
-          style: 'max-width: 80px; min-width: 80px;',
-          headerStyle: 'max-width: 80px; min-width: 80px;'
+          style: "max-width: 80px; min-width: 80px;",
+          headerStyle: "max-width: 80px; min-width: 80px;",
         },
         {
-          name: 'modified',
-          label: 'Modified',
+          name: "modified",
+          label: "Modified",
           field: (row) => row.data,
           format: getModified,
-          align: 'left',
+          align: "left",
           sortable: true,
           sort: (a, b) => parseFloat(a.stat.mtimeMs) - parseFloat(b.stat.mtimeMs),
-          style: 'max-width: 150px; min-width: 150px;',
-          headerStyle: 'max-width: 150px; min-width: 150px;'
-        }
+          style: "max-width: 150px; min-width: 150px;",
+          headerStyle: "max-width: 150px; min-width: 150px;",
+        },
       ]),
       pagination = reactive({
         page: 1,
         rowsPerPage: 0,
-        sortBy: 'name',
-        descending: false
-      })
+        sortBy: "name",
+        descending: false,
+      });
 
     // when a node is single-clicked
-    function onClick (node) {
-      selectedNode.value = node
-      emit('click', node)
+    function onClick(node) {
+      selectedNode.value = node;
+      emit("click", node);
     }
 
     // when a node is double-clicked
-    function onDblClick (node) {
-      selectedNode.value = node
-      emit('dblClick', node)
+    function onDblClick(node) {
+      selectedNode.value = node;
+      emit("dblClick", node);
     }
 
-    function rowClick (node) {
-      onClick(node)
+    function rowClick(node) {
+      onClick(node);
     }
 
-    function dblRowClick (node) {
-      onDblClick(node)
+    function dblRowClick(node) {
+      onDblClick(node);
     }
 
-    function getSize (node) {
+    function getSize(node) {
       if (node.isDir) {
         // return node.metadata.size + ' Items'
-        return ''
+        return "";
       }
-      return prettyBytes(node.metadata.size)
+      return prettyBytes(node.metadata.size);
     }
 
-    function getModified (node) {
-      if (node.metadata.mtime.valueOf() === 0) return ''
-      return date.formatDate(node.metadata.mtime, 'YYYY-MM-DD hh:mm:ss')
+    function getModified(node) {
+      if (node.metadata.mtime.valueOf() === 0) return "";
+      return date.formatDate(node.metadata.mtime, "YYYY-MM-DD hh:mm:ss");
     }
 
-    function selectedStyleObject (node) {
+    function selectedStyleObject(node) {
       if (node === selectedNode.value) {
         return {
-          backgroundColor: '#C0C0C0'
-        }
-      }
-      else {
+          backgroundColor: "#C0C0C0",
+        };
+      } else {
         return {
-          backgroundColor: 'inherit'
-        }
+          backgroundColor: "inherit",
+        };
       }
     }
 
-    function getIcon (node) {
-      return 'menu'
+    function getIcon(node) {
+      return "menu";
     }
 
     return {
@@ -236,10 +204,10 @@ export default defineComponent({
       getSize,
       getModified,
       selectedStyleObject,
-      getIcon
-    }
-  }
-})
+      getIcon,
+    };
+  },
+});
 </script>
 
 <style lang="sass" scoped>

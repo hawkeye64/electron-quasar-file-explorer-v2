@@ -7,38 +7,24 @@ on:
   pull_request:
 
 jobs:
-  build:
+  verify:
     runs-on: ubuntu-latest
-    name: 'Build: node-16, ubuntu-latest'
+    name: Node 24
     steps:
-      - name: Checkout
-        uses: actions/checkout@v2
+      - uses: actions/checkout@v5
 
-      - name: Set node version to 16
-        uses: actions/setup-node@v2
+      - uses: actions/setup-node@v6
         with:
-          node-version: 16
-          cache: 'yarn'
+          node-version: 24
 
-      - name: Versions
-        run: |
-          echo "yarn: $(yarn --version)"
-          echo "npm : $(npm --version)"
-          echo "node: $(node --version)"
-          echo "process.versions:"
-          yarn node -p process.versions
-      - name: Install dependencies
-        run: yarn install --frozen-lockfile
+      - name: Enable Corepack
+        run: corepack enable
 
-      - name: Lint
-        run: yarn run lint
+      - name: Install renderer dependencies
+        run: pnpm install --frozen-lockfile
 
-      - name: Build
-        run: yarn run build
+      - name: Install Electron dependencies
+        run: pnpm --dir src-electron install --frozen-lockfile
 
-      - name: Audit production
-        run: yarn audit --prod
-
-      - name: Audit all
-        continue-on-error: true
-        run: yarn audit
+      - name: Verify
+        run: pnpm verify

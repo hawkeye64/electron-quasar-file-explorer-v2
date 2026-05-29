@@ -1,0 +1,9 @@
+# This file exists to force pnpm install deps here, regardless of upper workspaces.
+# https://pnpm.io/settings
+allowBuilds:
+  electron: true
+  electron-winstaller: true
+
+minimumReleaseAgeExclude:
+  - electron@42.3.0
+  - electron-builder

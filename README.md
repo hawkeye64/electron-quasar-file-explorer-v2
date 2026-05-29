@@ -8,6 +8,31 @@ This File Explorer now uses Quasar v2 and Vue 3 composition API.
 
 This is a rudimentary File Explorer that works for Windows, Mac and Linux systems.
 
+## Install
+
+```bash
+pnpm install
+pnpm electron:install
+```
+
+## Development
+
+```bash
+pnpm dev
+```
+
+## Verify
+
+```bash
+pnpm verify
+```
+
+## Build
+
+```bash
+pnpm build
+```
+
 Items that have been added since the last tutorial:
 
 - Double-click to open a file based on it's type
@@ -27,8 +52,14 @@ For example:
 
 Feel free to PR if you like to make it better for others.
 
-# Donate
-If you appreciate the work that went into this, please consider donating to [Quasar](https://donate.quasar.dev) or [Jeff](https://github.com/sponsors/hawkeye64).
+## Sponsor
 
-# License
+If Electron Quasar File Explorer is useful in your workflow and you want to support ongoing maintenance:
+
+GitHub Sponsors: https://github.com/sponsors/hawkeye64
+
+PayPal: https://paypal.me/hawkeye64
+
+## License
+
 MIT (c) Jeff Galbraith <<jeff@quasar.dev>>
