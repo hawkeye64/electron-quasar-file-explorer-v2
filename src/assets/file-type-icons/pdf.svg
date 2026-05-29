@@ -2,6 +2,6 @@
   <path fill="#d8e1eb" d="M24 8h36l16 16v68H24z"/>
   <path fill="#f8fafc" d="M20 6h38l18 18v68H20z"/>
   <path fill="#c7d2df" d="M58 6v19h18z"/>
-  <rect width="50" height="24" x="25" y="45" fill="#e13d3d" rx="5"/>
-  <path fill="#fff" d="M33 52h7c5 0 8 3 8 7s-3 7-8 7h-2v6h-5zm5 4v6h2c2 0 3-1 3-3s-1-3-3-3zm15-4h7c6 0 10 4 10 10s-4 10-10 10h-7zm5 4v12h2c3 0 5-2 5-6s-2-6-5-6z"/>
+  <rect width="48" height="28" x="25" y="43" fill="#e13d3d" rx="6"/>
+  <text x="49" y="63" fill="#fff" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-size="16" font-weight="800" text-anchor="middle">PDF</text>
 </svg>
