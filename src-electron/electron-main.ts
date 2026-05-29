@@ -2,7 +2,7 @@ import { BrowserWindow, app, nativeTheme } from "electron";
 import { unlinkSync } from "node:fs";
 import path from "node:path";
 import os from "node:os";
-import { registerQuasarRuntime, resolveElectronAssetsPath } from "#q-app/electron/main";
+import { registerQuasarRuntime, resolveElectronAssetsPath } from "@quasar/app-vite/electron/main";
 
 import { useHandler } from "./handler";
 
