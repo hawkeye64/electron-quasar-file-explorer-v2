@@ -26,6 +26,7 @@ Electron runtime dependencies live in `src-electron/package.json`, while rendere
 - Electron main and preload scripts using the current Quasar `#q-app/electron/*` runtime helpers.
 - A secure preload bridge with `contextIsolation: true`.
 - Electron Builder packaging with app icons under `src-electron/electron-assets/icons`.
+- Custom app, favicon, and file-type icons generated from source SVG assets.
 - A Node 24 / pnpm 11 verification workflow suitable for CI.
 
 ## Install
