@@ -83,6 +83,9 @@ export default defineConfig((ctx) => {
         },
         mac: {
           target: "default",
+          // This sample app is intended for learning and CI validation, not
+          // signed distribution. Disable auto-signing so macOS builds are repeatable.
+          identity: null,
         },
         win: {
           target: "nsis",

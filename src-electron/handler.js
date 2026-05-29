@@ -1,7 +1,7 @@
 import { app, ipcMain, shell } from "electron";
 import os from "node:os";
 import path from "node:path";
-import { pathExists, readFileSync } from "fs-extra";
+import fse from "fs-extra";
 import mime from "mime";
 
 import walkFolders from "./walkFolders.js";
@@ -70,7 +70,7 @@ export function useHandler() {
   });
 
   ipcMain.handle("myShell:pathExists", async (_event, requestedPath) => {
-    return await pathExists(requestedPath);
+    return await fse.pathExists(requestedPath);
   });
 
   ipcMain.handle("myShell:openFile", async (_event, requestedPath) => {
@@ -80,7 +80,7 @@ export function useHandler() {
 
   ipcMain.handle("myShell:readFile", async (_event, requestedPath) => {
     // Used by the renderer to create image thumbnails from local files.
-    return readFileSync(requestedPath);
+    return fse.readFileSync(requestedPath);
   });
 
   ipcMain.handle("myShell:getMimeType", async (_event, requestedPath) => {
