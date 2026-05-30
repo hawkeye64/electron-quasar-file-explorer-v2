@@ -19,6 +19,7 @@
     "test": "echo \"No test specified\" && exit 0",
     "verify:fast": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm test",
     "verify:build": "pnpm --dir src-electron install --frozen-lockfile && pnpm build:ci",
+    "check:all": "pnpm verify",
     "verify": "pnpm verify:fast && pnpm verify:build",
     "deep": "ncu --configFilePath . --packageFile '{package.json,src-electron/package.json}'",
     "postinstall": "quasar prepare --silent"
