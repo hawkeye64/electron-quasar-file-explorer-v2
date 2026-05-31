@@ -1,0 +1,24 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "env": {
+    "browser": true,
+    "es2022": true,
+    "node": true,
+    "vue": true
+  },
+  "globals": {
+    "defineEmits": "readonly",
+    "defineExpose": "readonly",
+    "defineModel": "readonly",
+    "defineOptions": "readonly",
+    "defineProps": "readonly",
+    "gtag": "readonly",
+    "myShell": "readonly",
+    "withDefaults": "readonly"
+  },
+  "plugins": ["import", "node", "promise", "vue"],
+  "ignorePatterns": ["dist", ".quasar", "node_modules", "src-electron/node_modules"],
+  "rules": {
+    "no-undef": "error"
+  }
+}
