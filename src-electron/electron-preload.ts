@@ -29,7 +29,7 @@
  */
 
 import { contextBridge, ipcRenderer } from "electron";
-import { quasarRuntime } from "@quasar/app-vite/electron/preload";
+import { quasarRuntime } from "#q-app/electron/preload";
 
 /**
  * Can be used in the renderer process through `window.quasarRuntime`
