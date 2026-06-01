@@ -27,16 +27,20 @@ function patchElectronRuntimeAliasesForWindows(cfg: ElectronBuildConfig) {
   const appViteDir = dirname(require.resolve("@quasar/app-vite/package.json"));
 
   cfg.resolve ??= {};
-  cfg.resolve.alias ??= {};
 
   // Temporary diagnostic for app-vite beta.35 Windows Electron builds.
   // Linux/macOS keep using the intended package export resolution path.
-  cfg.resolve.alias["#q-app/electron/main"] = toPosixPath(
-    join(appViteDir, "exports/electron/main-runtime.js"),
-  );
-  cfg.resolve.alias["#q-app/electron/preload"] = toPosixPath(
-    join(appViteDir, "exports/electron/preload-runtime.js"),
-  );
+  const runtimeAliases = {
+    "#q-app/electron/main": toPosixPath(join(appViteDir, "exports/electron/main-runtime.js")),
+    "#q-app/electron/preload": toPosixPath(join(appViteDir, "exports/electron/preload-runtime.js")),
+  };
+
+  // Rolldown resolves aliases in declaration order, so the specific Electron
+  // aliases must be listed before the broader default "#q-app" alias.
+  cfg.resolve.alias = {
+    ...runtimeAliases,
+    ...cfg.resolve.alias,
+  };
 }
 
 function bundleElectronDepsForDev(cfg: ElectronBuildConfig, dev: boolean) {
