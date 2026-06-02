@@ -1,7 +1,3 @@
-import { createRequire } from "node:module";
-import { dirname, join } from "node:path";
-
-const require = createRequire(import.meta.url);
 const devBundledElectronDeps = new Set(["mime"]);
 
 interface ElectronBuildConfig {
@@ -13,34 +9,6 @@ interface ElectronBuildConfig {
 
 interface QuasarConfigContext {
   dev: boolean;
-}
-
-function toPosixPath(filePath: string) {
-  return filePath.replaceAll("\\", "/");
-}
-
-function patchElectronRuntimeAliasesForWindows(cfg: ElectronBuildConfig) {
-  if (process.platform !== "win32") {
-    return;
-  }
-
-  const appViteDir = dirname(require.resolve("@quasar/app-vite/package.json"));
-
-  cfg.resolve ??= {};
-
-  // Temporary diagnostic for app-vite beta.35 Windows Electron builds.
-  // Linux/macOS keep using the intended package export resolution path.
-  const runtimeAliases = {
-    "#q-app/electron/main": toPosixPath(join(appViteDir, "exports/electron/main-runtime.js")),
-    "#q-app/electron/preload": toPosixPath(join(appViteDir, "exports/electron/preload-runtime.js")),
-  };
-
-  // Rolldown resolves aliases in declaration order, so the specific Electron
-  // aliases must be listed before the broader default "#q-app" alias.
-  cfg.resolve.alias = {
-    ...runtimeAliases,
-    ...cfg.resolve.alias,
-  };
 }
 
 function bundleElectronDepsForDev(cfg: ElectronBuildConfig, dev: boolean) {
@@ -107,12 +75,10 @@ export default function (ctx: QuasarConfigContext) {
       bundler: "builder",
 
       extendElectronMainConf(cfg: ElectronBuildConfig) {
-        patchElectronRuntimeAliasesForWindows(cfg);
         bundleElectronDepsForDev(cfg, ctx.dev === true);
       },
 
       extendElectronPreloadConf(cfg: ElectronBuildConfig) {
-        patchElectronRuntimeAliasesForWindows(cfg);
         bundleElectronDepsForDev(cfg, ctx.dev === true);
       },
 
