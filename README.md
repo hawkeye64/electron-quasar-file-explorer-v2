@@ -87,4 +87,4 @@ PayPal: https://paypal.me/hawkeye64
 
 ## License
 
-MIT (c) Jeff Galbraith <<galbraith64@gmail.com>>
+MIT (c) 2021 Jeff Galbraith <galbraith64@gmail.com>
