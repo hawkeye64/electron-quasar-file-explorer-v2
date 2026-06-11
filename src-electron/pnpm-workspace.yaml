@@ -6,10 +6,10 @@ allowBuilds:
   electron-winstaller: true
 
 minimumReleaseAgeExclude:
-  - electron
-  - electron-builder
   - app-builder-lib@26.15.2
   - dmg-builder@26.15.2
   - electron-builder-squirrel-windows@26.15.2
+  - electron-builder
+  - electron
 
 trustLockfile: true

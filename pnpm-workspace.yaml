@@ -6,14 +6,8 @@ allowBuilds:
   esbuild: true
 
 minimumReleaseAgeExclude:
-  - electron
-  - "@quasar/app-vite"
   - "@clack/core"
   - "@clack/prompts"
-  - "@quasar/extras@2.0.0"
-  - "@quasar/render-ssr-error@2.2.3"
-  - "@quasar/vite-plugin@1.12.0"
-  - vue-router@5.1.0
   - "@oxfmt/binding-android-arm-eabi@0.53.0"
   - "@oxfmt/binding-android-arm64@0.53.0"
   - "@oxfmt/binding-darwin-arm64@0.53.0"
@@ -52,7 +46,13 @@ minimumReleaseAgeExclude:
   - "@oxlint/binding-win32-arm64-msvc@1.68.0"
   - "@oxlint/binding-win32-ia32-msvc@1.68.0"
   - "@oxlint/binding-win32-x64-msvc@1.68.0"
+  - "@quasar/app-vite"
+  - "@quasar/extras@2.0.0"
+  - "@quasar/render-ssr-error@2.2.3"
+  - "@quasar/vite-plugin@1.12.0"
+  - electron
   - oxfmt@0.53.0
   - oxlint@1.68.0
+  - vue-router@5.1.0
 
 trustLockfile: true
