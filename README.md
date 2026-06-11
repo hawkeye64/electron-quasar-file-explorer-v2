@@ -6,7 +6,7 @@ This is a follow-up to an article I wrote and published on [Medium](https://medi
 
 This File Explorer now uses Quasar v2, Vue 3, and the current Quasar app-vite Electron workflow.
 
-This is a rudimentary File Explorer that works for Windows, Mac and Linux systems.
+This is a rudimentary File Explorer that works for Windows, Mac and Linux systems. It provides a good example of how to use Quasar in `electron` mode.
 
 ## Current Stack
 
@@ -71,7 +71,7 @@ There is still plenty of work to be done to make it better.
 For example:
 
 - copy, paste, cut, delete
-- file info
+- file info/properties
 - plug and play drives (ie: USBs)
 - and others
 
@@ -81,9 +81,8 @@ Feel free to PR if you would like to make it better for others.
 
 If Electron Quasar File Explorer is useful in your workflow and you want to support ongoing maintenance:
 
-GitHub Sponsors: https://github.com/sponsors/hawkeye64
-
-PayPal: https://paypal.me/hawkeye64
+- GitHub Sponsors: https://github.com/sponsors/hawkeye64
+- PayPal: https://paypal.me/hawkeye64
 
 ## License
 
