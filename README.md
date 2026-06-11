@@ -11,8 +11,8 @@ This is a rudimentary File Explorer that works for Windows, Mac and Linux system
 ## Current Stack
 
 - App version `3.0.2`
-- Quasar `2.19.x`
-- `@quasar/app-vite` `3.0.0-beta`
+- Quasar `2.20.x`
+- `@quasar/app-vite` `3.0.0-rc`
 - Vue `3.5.x`
 - Electron `42.x`
 - Node `24.x`
