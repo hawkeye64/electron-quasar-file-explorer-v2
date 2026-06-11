@@ -8,7 +8,7 @@
     <div class="griditemimage" :style="gridItemImageStyleObject">
       <grid-item-image :node="node" :width="width" />
     </div>
-    <div class="griditemtext" :style="gridItemTextStyleObject">
+    <div class="griditemtext" :style="gridItemTextStyleObject" :title="node.name">
       {{ node.name }}
     </div>
   </div>
@@ -124,9 +124,11 @@ export default defineComponent({
 }
 .griditemcontainer {
   margin: 5px;
-  height: auto;
-  word-wrap: break-word;
+  height: 135px;
   border-radius: 4px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   -webkit-transition: "all 0.5s ease-in-out";
   transition: "all 0.5s ease-in-out";
 }
@@ -149,7 +151,14 @@ export default defineComponent({
   filter: brightness(108%);
 }
 .griditemtext {
+  width: 100%;
+  max-height: 3.75em;
+  line-height: 1.25;
+  overflow: hidden;
   text-align: center;
-  word-wrap: break-word;
+  overflow-wrap: anywhere;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
 }
 </style>

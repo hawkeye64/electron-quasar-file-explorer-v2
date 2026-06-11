@@ -1,6 +1,6 @@
 {
   "name": "electron-quasar-file-explorer-v2-electron",
-  "version": "3.0.2",
+  "version": "3.0.3",
   "private": true,
   "description": "Electron runtime dependencies for File Explorer",
   "type": "module",
