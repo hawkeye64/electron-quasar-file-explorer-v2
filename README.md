@@ -77,7 +77,7 @@ For example:
 
 Feel free to PR if you would like to make it better for others.
 
-## Sponsor
+## Support
 
 If Electron Quasar File Explorer is useful in your workflow and you want to support ongoing maintenance:
 
