@@ -12,8 +12,8 @@ importers:
   .:
     dependencies:
       '@quasar/extras':
-        specifier: 2.0.0
-        version: 2.0.0
+        specifier: 2.0.1
+        version: 2.0.1
       pretty-bytes:
         specifier: ^7.1.0
         version: 7.1.0
@@ -28,8 +28,8 @@ importers:
         version: 5.1.0(@vue/compiler-sfc@3.5.38)(vite@8.0.16(@types/node@25.9.3)(jiti@2.7.0)(sass-embedded@1.100.0)(sass@1.100.0)(terser@5.48.0)(yaml@2.9.0))(vue@3.5.38(typescript@6.0.3))
     devDependencies:
       '@quasar/app-vite':
-        specifier: 3.0.0-rc.1
-        version: 3.0.0-rc.1(@types/node@25.9.3)(quasar@2.20.0)(sass@1.100.0)(terser@5.48.0)(typescript@6.0.3)(vue-router@5.1.0(@vue/compiler-sfc@3.5.38)(vite@8.0.16(@types/node@25.9.3)(jiti@2.7.0)(sass-embedded@1.100.0)(sass@1.100.0)(terser@5.48.0)(yaml@2.9.0))(vue@3.5.38(typescript@6.0.3)))(vue@3.5.38(typescript@6.0.3))(yaml@2.9.0)
+        specifier: 3.0.0-rc.2
+        version: 3.0.0-rc.2(@types/node@25.9.3)(quasar@2.20.0)(sass@1.100.0)(terser@5.48.0)(typescript@6.0.3)(vue-router@5.1.0(@vue/compiler-sfc@3.5.38)(vite@8.0.16(@types/node@25.9.3)(jiti@2.7.0)(sass-embedded@1.100.0)(sass@1.100.0)(terser@5.48.0)(yaml@2.9.0))(vue@3.5.38(typescript@6.0.3)))(vue@3.5.38(typescript@6.0.3))(yaml@2.9.0)
       '@types/node':
         specifier: ^25.9.3
         version: 25.9.3
@@ -523,8 +523,8 @@ packages:
     resolution: {integrity: sha512-C2Xj8FZ0uHWeCXXqX5B4/gVFQmtSkiuOolzAgutjTfseNOHT3pUjljDZsTSxXFGgio54bCzVFqmEOUrIVk8RDA==}
     engines: {node: '>=20.0.0'}
 
-  '@quasar/app-vite@3.0.0-rc.1':
-    resolution: {integrity: sha512-bhvaat1E0bDqutLMZQUNZcgL/vx2iJQX9GITQqdmAflAQs+GZZBh5DqknFJ3JsuIjs/ci0xrQ+oUxwa/jSKqQQ==}
+  '@quasar/app-vite@3.0.0-rc.2':
+    resolution: {integrity: sha512-tyb+YTU+rptShKvGhgFEXvVqnMfCEUbyXffAiWqf9JwUu2Ay/c51oCxAhXJi5CTMDUvZUV/vt82K1J6jOwWiAg==}
     engines: {node: ^30 || ^28 || ^26 || ^24 || ^22.22.0}
     hasBin: true
     peerDependencies:
@@ -557,8 +557,8 @@ packages:
   '@quasar/art@1.0.0':
     resolution: {integrity: sha512-IAV8Qg2QM3U2alywUcCELyOlHCUNbJYmiVDRTLgcgmyBlQwo3Wk33eHAyT9cpnV5CqlmuYXe6UZt0Ybi1m0lMA==}
 
-  '@quasar/extras@2.0.0':
-    resolution: {integrity: sha512-JiVq65j28Rp5AFLVpHBSv+MUV+NpE4x8cSGyfWquakOZe8FCV1E6qmbCDQhPY/e2fheFhaN8uGl1R3UbC8BxZw==}
+  '@quasar/extras@2.0.1':
+    resolution: {integrity: sha512-gieBBROuXkVhvqXtbcVg4pHR5FDcaK+F9PaY2K2t8+EuK8OB/0aJq306DeF5+/Bqv8ixIXT9KhpRZj0HotaOew==}
 
   '@quasar/render-ssr-error@2.2.3':
     resolution: {integrity: sha512-tlYP5iCJXD1Yv/5JrWSgwuJiIJ9FfTexhM4Sh3kwarSp3iyr5aEk7zoHx8+jwuy9l10H6lA/TDK57CRsN1Bdtw==}
@@ -2258,7 +2258,7 @@ snapshots:
       tslib: 2.8.1
       tsyringe: 4.10.0
 
-  '@quasar/app-vite@3.0.0-rc.1(@types/node@25.9.3)(quasar@2.20.0)(sass@1.100.0)(terser@5.48.0)(typescript@6.0.3)(vue-router@5.1.0(@vue/compiler-sfc@3.5.38)(vite@8.0.16(@types/node@25.9.3)(jiti@2.7.0)(sass-embedded@1.100.0)(sass@1.100.0)(terser@5.48.0)(yaml@2.9.0))(vue@3.5.38(typescript@6.0.3)))(vue@3.5.38(typescript@6.0.3))(yaml@2.9.0)':
+  '@quasar/app-vite@3.0.0-rc.2(@types/node@25.9.3)(quasar@2.20.0)(sass@1.100.0)(terser@5.48.0)(typescript@6.0.3)(vue-router@5.1.0(@vue/compiler-sfc@3.5.38)(vite@8.0.16(@types/node@25.9.3)(jiti@2.7.0)(sass-embedded@1.100.0)(sass@1.100.0)(terser@5.48.0)(yaml@2.9.0))(vue@3.5.38(typescript@6.0.3)))(vue@3.5.38(typescript@6.0.3))(yaml@2.9.0)':
     dependencies:
       '@clack/prompts': 1.5.1
       '@quasar/art': 1.0.0
@@ -2311,7 +2311,7 @@ snapshots:
 
   '@quasar/art@1.0.0': {}
 
-  '@quasar/extras@2.0.0': {}
+  '@quasar/extras@2.0.1': {}
 
   '@quasar/render-ssr-error@2.2.3':
     dependencies:
