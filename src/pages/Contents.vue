@@ -58,15 +58,15 @@
 </template>
 
 <script>
-import { defineComponent, ref, reactive } from "vue";
-import { date } from "quasar";
-import { useExplorerStore } from "../store/explorerStore.js";
-import prettyBytes from "pretty-bytes";
-import GridItem from "../components/GridItem.vue";
-import GridItemImage from "../components/GridItemImage.vue";
+import { defineComponent, ref, reactive } from 'vue'
+import { date } from 'quasar'
+import { useExplorerStore } from '../store/explorerStore.js'
+import prettyBytes from 'pretty-bytes'
+import GridItem from '../components/GridItem.vue'
+import GridItemImage from '../components/GridItemImage.vue'
 
 export default defineComponent({
-  name: "Contents",
+  name: 'Contents',
 
   components: {
     GridItem,
@@ -85,7 +85,7 @@ export default defineComponent({
     },
   },
 
-  emits: ["click", "dblClick"],
+  emits: ['click', 'dblClick'],
 
   setup(props, { emit }) {
     const store = useExplorerStore(),
@@ -93,85 +93,85 @@ export default defineComponent({
       imageWidth = 25,
       columns = reactive([
         {
-          name: "type",
+          name: 'type',
           required: true,
-          label: "Type",
-          field: (row) => row.mimetype || (row.isDir ? "inode/directory" : ""),
-          align: "center",
+          label: 'Type',
+          field: (row) => row.mimetype || (row.isDir ? 'inode/directory' : ''),
+          align: 'center',
           sortable: false,
-          style: "max-width: 50px;",
-          headerStyle: "max-width: 50px;",
+          style: 'max-width: 50px;',
+          headerStyle: 'max-width: 50px;',
         },
         {
-          name: "label",
+          name: 'label',
           required: true,
-          label: "Name",
-          field: "name",
-          align: "left",
+          label: 'Name',
+          field: 'name',
+          align: 'left',
           sortable: true,
-          style: "width: 100%",
-          headerStyle: "width: 100%",
+          style: 'width: 100%',
+          headerStyle: 'width: 100%',
         },
         {
-          name: "size",
-          label: "Size",
+          name: 'size',
+          label: 'Size',
           field: (row) => row.metadata?.size || 0,
           format: (_value, row) => getSize(row),
-          align: "right",
+          align: 'right',
           sortable: true,
-          style: "max-width: 80px; min-width: 80px;",
-          headerStyle: "max-width: 80px; min-width: 80px;",
+          style: 'max-width: 80px; min-width: 80px;',
+          headerStyle: 'max-width: 80px; min-width: 80px;',
         },
         {
-          name: "modified",
-          label: "Modified",
+          name: 'modified',
+          label: 'Modified',
           field: (row) => row.metadata?.mtimeMs || 0,
           format: (_value, row) => getModified(row),
-          align: "left",
+          align: 'left',
           sortable: true,
-          style: "max-width: 150px; min-width: 150px;",
-          headerStyle: "max-width: 150px; min-width: 150px;",
+          style: 'max-width: 150px; min-width: 150px;',
+          headerStyle: 'max-width: 150px; min-width: 150px;',
         },
       ]),
       pagination = reactive({
         page: 1,
         rowsPerPage: 0,
-        sortBy: "label",
+        sortBy: 'label',
         descending: false,
-      });
+      })
 
     // when a node is single-clicked
     function onClick(node) {
-      selectedNode.value = node;
-      emit("click", node);
+      selectedNode.value = node
+      emit('click', node)
     }
 
     // when a node is double-clicked
     function onDblClick(node) {
-      selectedNode.value = node;
-      emit("dblClick", node);
+      selectedNode.value = node
+      emit('dblClick', node)
     }
 
     function rowClick(node) {
-      onClick(node);
+      onClick(node)
     }
 
     function dblRowClick(node) {
-      onDblClick(node);
+      onDblClick(node)
     }
 
     function getSize(node) {
       if (node.isDir) {
         // Directory sizes are expensive to calculate recursively, so this
         // example leaves them blank instead of blocking the UI.
-        return "";
+        return ''
       }
-      return prettyBytes(node.metadata?.size || 0);
+      return prettyBytes(node.metadata?.size || 0)
     }
 
     function getModified(node) {
-      if (!node.metadata?.mtime || node.metadata.mtime.valueOf() === 0) return "";
-      return date.formatDate(node.metadata.mtime, "YYYY-MM-DD hh:mm:ss");
+      if (!node.metadata?.mtime || node.metadata.mtime.valueOf() === 0) return ''
+      return date.formatDate(node.metadata.mtime, 'YYYY-MM-DD hh:mm:ss')
     }
 
     function selectedStyleObject(node) {
@@ -179,17 +179,17 @@ export default defineComponent({
       // in MainLayout and the shared explorer store.
       if (node === selectedNode.value) {
         return {
-          backgroundColor: "#C0C0C0",
-        };
+          backgroundColor: '#C0C0C0',
+        }
       } else {
         return {
-          backgroundColor: "inherit",
-        };
+          backgroundColor: 'inherit',
+        }
       }
     }
 
     function getIcon(node) {
-      return "menu";
+      return 'menu'
     }
 
     return {
@@ -206,9 +206,9 @@ export default defineComponent({
       getModified,
       selectedStyleObject,
       getIcon,
-    };
+    }
   },
-});
+})
 </script>
 
 <style lang="sass" scoped>

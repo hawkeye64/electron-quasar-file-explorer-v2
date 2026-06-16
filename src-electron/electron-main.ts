@@ -1,22 +1,22 @@
-import { BrowserWindow, app, nativeTheme } from "electron";
-import { unlinkSync } from "node:fs";
-import path from "node:path";
-import os from "node:os";
-import { registerQuasarRuntime, resolveElectronAssetsPath } from "#q-app/electron/main";
+import { BrowserWindow, app, nativeTheme } from 'electron'
+import { unlinkSync } from 'node:fs'
+import path from 'node:path'
+import os from 'node:os'
+import { registerQuasarRuntime, resolveElectronAssetsPath } from '#q-app/electron/main'
 
-import { useHandler } from "./handler";
+import { useHandler } from './handler'
 
 // The main process owns native Electron APIs, application lifecycle, and IPC.
 // Renderer code should reach this file only through the preload bridge.
 
 // needed in case process is undefined under Linux
-const platform = process.platform || os.platform();
+const platform = process.platform || os.platform()
 
 try {
   // Electron can hold stale DevTools extension metadata on Windows dark mode.
   // Removing it keeps local development startup predictable.
-  if (platform === "win32" && nativeTheme.shouldUseDarkColors === true) {
-    unlinkSync(path.join(app.getPath("userData"), "DevTools Extensions"));
+  if (platform === 'win32' && nativeTheme.shouldUseDarkColors === true) {
+    unlinkSync(path.join(app.getPath('userData'), 'DevTools Extensions'))
   }
 } catch {}
 
@@ -24,7 +24,7 @@ async function createWindow() {
   const mainWindow = new BrowserWindow({
     // resolveElectronAssetsPath handles the dev/build path difference for files
     // copied through Quasar's Electron asset pipeline.
-    icon: resolveElectronAssetsPath("icons/icon.png"),
+    icon: resolveElectronAssetsPath('icons/icon.png'),
     width: 1000,
     height: 600,
     useContentSize: true,
@@ -32,46 +32,46 @@ async function createWindow() {
       // Keep the renderer isolated from Node/Electron globals. The preload file
       // exposes only the small API surface this app needs.
       contextIsolation: true,
-      preload: path.join(import.meta.dirname, "electron-preload.cjs"),
+      preload: path.join(import.meta.dirname, 'electron-preload.cjs'),
     },
-  });
+  })
 
   // Quasar serves the renderer from Vite in dev and from index.html in builds.
   if (import.meta.env.QUASAR_DEV) {
-    await mainWindow.loadURL(import.meta.env.QUASAR_APP_URL);
+    await mainWindow.loadURL(import.meta.env.QUASAR_APP_URL)
   } else {
-    await mainWindow.loadFile("index.html");
+    await mainWindow.loadFile('index.html')
   }
 
   if (import.meta.env.QUASAR_DEBUG) {
     // if on DEV or Production with debug enabled
-    mainWindow.webContents.openDevTools();
+    mainWindow.webContents.openDevTools()
   } else {
     // we're on production; no access to devtools pls
-    mainWindow.webContents.on("devtools-opened", () => {
-      mainWindow?.webContents.closeDevTools();
-    });
+    mainWindow.webContents.on('devtools-opened', () => {
+      mainWindow?.webContents.closeDevTools()
+    })
   }
 }
 
 void app.whenReady().then(async () => {
   // Quasar's runtime wires aliases/assets used by Electron main/preload code.
-  await registerQuasarRuntime();
+  await registerQuasarRuntime()
 
   // Register IPC channels before the renderer has a chance to call them.
-  useHandler();
+  useHandler()
 
-  void createWindow();
+  void createWindow()
 
-  app.on("activate", () => {
+  app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {
-      void createWindow();
+      void createWindow()
     }
-  });
-});
+  })
+})
 
-app.on("window-all-closed", () => {
-  if (platform !== "darwin") {
-    app.quit();
+app.on('window-all-closed', () => {
+  if (platform !== 'darwin') {
+    app.quit()
   }
-});
+})

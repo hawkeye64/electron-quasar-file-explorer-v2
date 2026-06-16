@@ -2,13 +2,13 @@
   <router-view />
 </template>
 <script>
-import { defineComponent } from "vue";
-import { provideExplorerStore } from "./store/explorerStore.js";
+import { defineComponent } from 'vue'
+import { provideExplorerStore } from './store/explorerStore.js'
 
 export default defineComponent({
-  name: "App",
+  name: 'App',
   setup() {
-    provideExplorerStore();
+    provideExplorerStore()
   },
-});
+})
 </script>

@@ -76,9 +76,9 @@
 </template>
 
 <script>
-import ShortcutLink from "@/components/ShortcutLink.vue";
-import Breadcrumbs from "@/components/Breadcrumbs.vue";
-import { defineComponent, ref, reactive, onBeforeMount, watch, nextTick } from "vue";
+import ShortcutLink from '@/components/ShortcutLink.vue'
+import Breadcrumbs from '@/components/Breadcrumbs.vue'
+import { defineComponent, ref, reactive, onBeforeMount, watch, nextTick } from 'vue'
 import {
   walkFolders,
   windowsDrives,
@@ -87,12 +87,12 @@ import {
   getSep,
   getPlatform,
   getMimeType,
-} from "../backend/utils.js";
-import { useExplorerStore } from "../store/explorerStore.js";
-import Contents from "../pages/Contents.vue";
+} from '../backend/utils.js'
+import { useExplorerStore } from '../store/explorerStore.js'
+import Contents from '../pages/Contents.vue'
 
 export default defineComponent({
-  name: "MainLayout",
+  name: 'MainLayout',
 
   components: {
     ShortcutLink,
@@ -106,91 +106,91 @@ export default defineComponent({
       folderTree = reactive([]),
       shortcutLinks = reactive([]),
       store = useExplorerStore(),
-      selectedFolder = ref(""),
+      selectedFolder = ref(''),
       currentDrive = ref(),
       selectedKey = reactive([]),
       lazyLoading = ref(false),
-      drives = reactive([]);
-    let pathSep = "",
-      platform = "";
+      drives = reactive([])
+    let pathSep = '',
+      platform = ''
 
     onBeforeMount(async () => {
       // The first renderer action is to ask the preload bridge for OS details.
       // This keeps platform-specific filesystem logic out of Vue components.
-      pathSep = await getSep();
-      platform = await getPlatform();
+      pathSep = await getSep()
+      platform = await getPlatform()
 
-      if (platform === "win32") {
-        const localDrives = await windowsDrives();
-        drives.splice(0, drives.length, ...localDrives);
-        currentDrive.value = drives.includes("c:") ? "c:" : drives[0];
-        selectedFolder.value = currentDrive.value + pathSep;
+      if (platform === 'win32') {
+        const localDrives = await windowsDrives()
+        drives.splice(0, drives.length, ...localDrives)
+        currentDrive.value = drives.includes('c:') ? 'c:' : drives[0]
+        selectedFolder.value = currentDrive.value + pathSep
       } else {
         // root folder (POSIX)
-        selectedFolder.value = pathSep;
+        selectedFolder.value = pathSep
       }
 
       // Seed both the content pane and the side tree from the selected root.
-      const folders = await adjustFolders(await walkFolders(selectedFolder.value));
-      folderTree.splice(0, folderTree.length, ...folders);
+      const folders = await adjustFolders(await walkFolders(selectedFolder.value))
+      folderTree.splice(0, folderTree.length, ...folders)
 
       // Common locations are resolved by Electron's app.getPath in the main process.
-      const shortcuts = await shortcutDirs();
+      const shortcuts = await shortcutDirs()
 
       shortcutLinks.push({
-        name: "Home",
+        name: 'Home',
         path: shortcuts.home,
-        icon: "home",
-      });
+        icon: 'home',
+      })
 
       shortcutLinks.push({
-        name: "Desktop",
+        name: 'Desktop',
         path: shortcuts.desktop,
-        icon: "desktop_windows",
-      });
+        icon: 'desktop_windows',
+      })
 
       shortcutLinks.push({
-        name: "Documents",
+        name: 'Documents',
         path: shortcuts.document,
-        icon: "folder",
-      });
+        icon: 'folder',
+      })
 
       shortcutLinks.push({
-        name: "Download",
+        name: 'Download',
         path: shortcuts.download,
-        icon: "vertical_align_bottom",
-      });
+        icon: 'vertical_align_bottom',
+      })
 
       shortcutLinks.push({
-        name: "Pictures",
+        name: 'Pictures',
         path: shortcuts.picture,
-        icon: "image",
-      });
+        icon: 'image',
+      })
 
       shortcutLinks.push({
-        name: "Audio",
+        name: 'Audio',
         path: shortcuts.audio,
-        icon: "music_note",
-      });
+        icon: 'music_note',
+      })
 
       shortcutLinks.push({
-        name: "Video",
+        name: 'Video',
         path: shortcuts.video,
-        icon: "local_movies",
-      });
-    });
+        icon: 'local_movies',
+      })
+    })
 
     // Windows has multiple filesystem roots, so switching drives resets the
     // side tree and content pane to the selected drive root.
     watch(currentDrive, async () => {
-      selectedFolder.value = currentDrive.value + pathSep;
-      const folders = await adjustFolders(await walkFolders(selectedFolder.value));
-      folderTree.splice(0, folderTree.length, ...folders);
-    });
+      selectedFolder.value = currentDrive.value + pathSep
+      const folders = await adjustFolders(await walkFolders(selectedFolder.value))
+      folderTree.splice(0, folderTree.length, ...folders)
+    })
 
     function sortContents(folders) {
       // sort the data
-      folders.sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: "base" }));
+      folders.sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }))
     }
 
     async function filterContents(folders, sort = true) {
@@ -200,22 +200,22 @@ export default defineComponent({
         folders
           .filter((folder) => !folder.error)
           .map(async (folder) => {
-            folder.mimetype = await getMimeType(folder.path);
-            return folder;
+            folder.mimetype = await getMimeType(folder.path)
+            return folder
           }),
-      );
+      )
 
       // sort contents
-      sortContents(filteredContent);
+      sortContents(filteredContent)
 
       // add filtered content to store
       if (filteredContent && filteredContent.length > 0) {
-        store.files.splice(0, store.files.length, ...filteredContent);
+        store.files.splice(0, store.files.length, ...filteredContent)
       } else {
-        store.files.splice(0, store.files.length);
+        store.files.splice(0, store.files.length)
       }
 
-      return filteredContent;
+      return filteredContent
     }
 
     async function filterSideFolders(folders, sort = true) {
@@ -225,49 +225,49 @@ export default defineComponent({
         folders
           .filter((folder) => folder.children !== undefined)
           .map(async (folder) => {
-            const absolutePath = folder.path + pathSep + folder.name;
-            folder.lazy = !!folder.children;
-            folder.tickable = true;
-            folder.mimetype = await getMimeType(absolutePath);
-            return folder;
+            const absolutePath = folder.path + pathSep + folder.name
+            folder.lazy = !!folder.children
+            folder.tickable = true
+            folder.mimetype = await getMimeType(absolutePath)
+            return folder
           }),
-      );
-      sortContents(filteredFolders);
-      return filteredFolders;
+      )
+      sortContents(filteredFolders)
+      return filteredFolders
     }
 
     async function adjustFolders(folders) {
       // One filesystem scan feeds two views: visible contents and tree branches.
-      await filterContents(folders);
-      return await filterSideFolders(folders, false);
+      await filterContents(folders)
+      return await filterSideFolders(folders, false)
     }
 
     async function onLazyLoad({ node, key, done, fail }) {
       // QTree calls this only when an expandable directory is opened.
-      lazyLoading.value = true;
+      lazyLoading.value = true
       try {
-        setSelectedFolder(node.path);
-        const folders = await adjustFolders(await walkFolders(key));
-        done(folders);
+        setSelectedFolder(node.path)
+        const folders = await adjustFolders(await walkFolders(key))
+        done(folders)
       } catch (error) {
-        console.error("Failed to fetch folders:", error);
+        console.error('Failed to fetch folders:', error)
         // fail()
-        done([]);
+        done([])
       }
-      lazyLoading.value = false;
+      lazyLoading.value = false
     }
 
     async function onShortcut({ name, path }) {
-      setSelectedFolder(path);
-      await filterContents(await walkFolders(path));
-      expandTree(path);
+      setSelectedFolder(path)
+      await filterContents(await walkFolders(path))
+      expandTree(path)
     }
 
     watch(selectedFolder, (absolutePath) => {
       if (selectedFolder.value !== absolutePath) {
-        onSelectedFolder(absolutePath);
+        onSelectedFolder(absolutePath)
       }
-    });
+    })
 
     function onClicked(node) {
       // on single-clicks we don't do anything here
@@ -278,86 +278,86 @@ export default defineComponent({
     async function onDblClicked(node) {
       if (node.isDir) {
         // Double-clicking a folder drills into it; double-clicking a file opens it.
-        store.viewType = "nodes";
-        await onSelectedFolder(node.path);
-        expandTree(node.path);
+        store.viewType = 'nodes'
+        await onSelectedFolder(node.path)
+        expandTree(node.path)
       } else {
-        onFileSelected(node);
+        onFileSelected(node)
       }
     }
 
     function setSelectedFolder(absolutePath) {
-      selectedFolder.value = absolutePath;
-      store.viewType = "nodes";
+      selectedFolder.value = absolutePath
+      store.viewType = 'nodes'
       // Normalize Windows drive paths so "C:" becomes "C:\" and the drive
       // selector stays in sync with breadcrumb/tree navigation.
-      if (platform === "win32") {
-        if (selectedFolder.value.charAt(absolutePath.length - 1) === ":") {
-          selectedFolder.value += pathSep;
+      if (platform === 'win32') {
+        if (selectedFolder.value.charAt(absolutePath.length - 1) === ':') {
+          selectedFolder.value += pathSep
         }
-        if (selectedFolder.value.charAt(1) === ":") {
-          currentDrive.value = selectedFolder.value.charAt(0) + ":";
+        if (selectedFolder.value.charAt(1) === ':') {
+          currentDrive.value = selectedFolder.value.charAt(0) + ':'
         }
       }
     }
 
     async function onSelectedFolder(absolutePath) {
-      store.viewType = "nodes";
-      setSelectedFolder(absolutePath);
-      await filterContents(await walkFolders(absolutePath));
+      store.viewType = 'nodes'
+      setSelectedFolder(absolutePath)
+      await filterContents(await walkFolders(absolutePath))
       // Breadcrumb selections may point to nodes that are not loaded yet, so
       // expandTree walks down the path and triggers lazy loads as needed.
-      expandTree(absolutePath);
+      expandTree(absolutePath)
     }
 
     function onFileSelected(node) {
-      openFile(node.path);
+      openFile(node.path)
     }
 
     function expandTree(absolutePath) {
-      if (!absolutePath) return;
+      if (!absolutePath) return
 
       // get parts for the path
-      const parts = absolutePath.split(pathSep);
-      let path2 = "";
-      let lastNodeKey;
+      const parts = absolutePath.split(pathSep)
+      let path2 = ''
+      let lastNodeKey
 
       // Walk path segments from root to leaf. If a segment has not been loaded,
       // expanding the closest parent triggers QTree's lazy-load hook, then this
       // function retries once loading is finished.
       for (let index = 0; index < parts.length; ++index) {
         if (parts[index].length === 0) {
-          continue;
+          continue
         }
         if (index === 0) {
-          path2 += parts[index] + pathSep;
+          path2 += parts[index] + pathSep
         } else {
           if (path2[path2.length - 1] !== pathSep) {
-            path2 += pathSep;
+            path2 += pathSep
           }
-          path2 += parts[index];
+          path2 += parts[index]
         }
         if (index > -1) {
           if (treeRef.value) {
-            const key = treeRef.value.getNodeByKey(path2);
+            const key = treeRef.value.getNodeByKey(path2)
             // if we get key, then this folder has already been loaded
             if (key) {
-              lastNodeKey = key;
+              lastNodeKey = key
             }
             // handle folder not expanded
             if (lastNodeKey && !treeRef.value.isExpanded(lastNodeKey.path)) {
-              treeRef.value.setExpanded(lastNodeKey.path, true);
+              treeRef.value.setExpanded(lastNodeKey.path, true)
               if (path2 === absolutePath) {
                 // selected = absolutePath
               } else {
                 nextTick(() => {
                   const interval = setInterval(() => {
                     if (lazyLoading.value === false) {
-                      clearInterval(interval);
-                      expandTree(absolutePath);
+                      clearInterval(interval)
+                      expandTree(absolutePath)
                     }
-                  }, 50);
-                });
+                  }, 50)
+                })
               }
             }
           }
@@ -366,10 +366,10 @@ export default defineComponent({
     }
 
     function toggleListType() {
-      if (store.listType === "grid") {
-        store.listType = "list";
+      if (store.listType === 'grid') {
+        store.listType = 'list'
       } else {
-        store.listType = "grid";
+        store.listType = 'grid'
       }
     }
 
@@ -378,7 +378,7 @@ export default defineComponent({
       treeRef,
       leftDrawerOpen,
       toggleLeftDrawer() {
-        leftDrawerOpen.value = !leftDrawerOpen.value;
+        leftDrawerOpen.value = !leftDrawerOpen.value
       },
       shortcutLinks,
       folderTree,
@@ -392,7 +392,7 @@ export default defineComponent({
       onDblClicked,
       onSelectedFolder,
       toggleListType,
-    };
+    }
   },
-});
+})
 </script>

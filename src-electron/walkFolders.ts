@@ -1,14 +1,14 @@
-import { readdirSync, statSync, type Stats } from "node:fs";
-import path from "node:path";
+import { readdirSync, statSync, type Stats } from 'node:fs'
+import path from 'node:path'
 
 export interface FileInfo {
-  path: string;
-  name?: string;
-  isDir?: boolean;
-  isSymLink?: boolean;
-  metadata?: Stats;
-  children?: FileInfo[];
-  error?: unknown;
+  path: string
+  name?: string
+  isDir?: boolean
+  isSymLink?: boolean
+  metadata?: Stats
+  children?: FileInfo[]
+  error?: unknown
 }
 
 /**
@@ -17,11 +17,11 @@ export interface FileInfo {
  */
 function* walkFolders(folder: string): IterableIterator<FileInfo> {
   try {
-    const files = readdirSync(folder);
+    const files = readdirSync(folder)
     for (const file of files) {
       try {
-        const pathToFile = path.join(folder, file);
-        const stat = statSync(pathToFile);
+        const pathToFile = path.join(folder, file)
+        const stat = statSync(pathToFile)
 
         yield {
           path: pathToFile,
@@ -29,7 +29,7 @@ function* walkFolders(folder: string): IterableIterator<FileInfo> {
           isDir: stat.isDirectory(),
           isSymLink: stat.isSymbolicLink(),
           metadata: stat,
-        };
+        }
       } catch (err) {
         // Yield per-file errors instead of failing the whole folder scan. The
         // renderer can skip unreadable entries and still show the rest.
@@ -37,7 +37,7 @@ function* walkFolders(folder: string): IterableIterator<FileInfo> {
           path: path.join(folder, file),
           name: file,
           error: err,
-        };
+        }
       }
     }
   } catch (err) {
@@ -46,8 +46,8 @@ function* walkFolders(folder: string): IterableIterator<FileInfo> {
     yield {
       path: folder,
       error: err,
-    };
+    }
   }
 }
 
-export default walkFolders;
+export default walkFolders

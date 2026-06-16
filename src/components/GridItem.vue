@@ -15,11 +15,11 @@
 </template>
 
 <script>
-import { defineComponent, computed, watch } from "vue";
-import GridItemImage from "./GridItemImage.vue";
+import { defineComponent, computed, watch } from 'vue'
+import GridItemImage from './GridItemImage.vue'
 
 export default defineComponent({
-  name: "GridItem",
+  name: 'GridItem',
 
   components: {
     GridItemImage,
@@ -36,74 +36,74 @@ export default defineComponent({
       type: String,
     },
   },
-  emits: ["click", "dblClick"],
+  emits: ['click', 'dblClick'],
 
   setup(props, { emit }) {
     const width = 75,
       fontSize = 12,
-      delay = 200;
-    let timer = null;
+      delay = 200
+    let timer = null
 
     const gridItemContainerStyleObject = computed(() => {
       if (props.node === props.selectedNode) {
         // current node is selected
         return {
-          backgroundColor: "#C0C0C0",
-          width: width + "px",
-        };
+          backgroundColor: '#C0C0C0',
+          width: width + 'px',
+        }
       } else {
         return {
-          backgroundColor: "inherit",
-          width: width + "px",
-        };
+          backgroundColor: 'inherit',
+          width: width + 'px',
+        }
       }
-    });
+    })
 
     const gridItemImageStyleObject = computed(() => {
       return {
-        width: width + "px",
-        height: width + "px",
-      };
-    });
+        width: width + 'px',
+        height: width + 'px',
+      }
+    })
 
     const gridItemTextStyleObject = computed(() => {
       return {
-        fontSize: fontSize + "px",
-      };
-    });
+        fontSize: fontSize + 'px',
+      }
+    })
 
     watch(
       () => props.viewType,
       (val) => {
-        if (props.viewType === "nodes" && props.node === props.selectedNode) {
+        if (props.viewType === 'nodes' && props.node === props.selectedNode) {
           // TODO: Jeff
           // this.$el.scrollIntoView()
         }
       },
-    );
+    )
 
     function onClick() {
       // Browsers emit two click events before a dblclick. A short timer lets the
       // parent treat single-click selection and double-click open separately.
       if (timer) {
-        return;
+        return
       }
 
-      emit("click", props.node);
+      emit('click', props.node)
 
       timer = setTimeout(() => {
-        clearTimeout(timer);
-      }, delay);
+        clearTimeout(timer)
+      }, delay)
     }
 
     function onDblClick() {
       if (timer) {
-        clearTimeout(timer);
+        clearTimeout(timer)
       }
       // Vue event names are case-sensitive in JavaScript; keep the emitted name
       // aligned with the parent listener used by this demo.
       // eslint-disable-next-line vue/custom-event-name-casing
-      emit("dblClick", props.node);
+      emit('dblClick', props.node)
     }
 
     return {
@@ -113,14 +113,14 @@ export default defineComponent({
       gridItemTextStyleObject,
       onClick,
       onDblClick,
-    };
+    }
   },
-});
+})
 </script>
 
 <style scoped>
 .selected {
-  background-color: "#C0C0C0";
+  background-color: '#C0C0C0';
 }
 .griditemcontainer {
   margin: 5px;
@@ -129,8 +129,8 @@ export default defineComponent({
   display: flex;
   flex-direction: column;
   align-items: center;
-  -webkit-transition: "all 0.5s ease-in-out";
-  transition: "all 0.5s ease-in-out";
+  -webkit-transition: 'all 0.5s ease-in-out';
+  transition: 'all 0.5s ease-in-out';
 }
 .griditemcontainer:hover {
   background-color: rgba(0, 0, 0, 0.05);
@@ -138,8 +138,8 @@ export default defineComponent({
     0 1px 5px rgba(0, 0, 0, 0.2),
     0 2px 2px rgba(0, 0, 0, 0.14),
     0 3px 1px -2px rgba(0, 0, 0, 0.12);
-  -webkit-transition: "all 0.5s ease-in-out";
-  transition: "all 0.5s ease-in-out";
+  -webkit-transition: 'all 0.5s ease-in-out';
+  transition: 'all 0.5s ease-in-out';
 }
 .griditemimage {
   display: flex;

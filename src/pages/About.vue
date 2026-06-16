@@ -3,18 +3,18 @@
 </template>
 
 <script>
-import { defineComponent } from "vue";
-import { useExplorerStore } from "../store/explorerStore.js";
+import { defineComponent } from 'vue'
+import { useExplorerStore } from '../store/explorerStore.js'
 
 export default defineComponent({
-  name: "Contents",
+  name: 'Contents',
 
   setup() {
-    const store = useExplorerStore();
+    const store = useExplorerStore()
 
     return {
       store,
-    };
+    }
   },
-});
+})
 </script>

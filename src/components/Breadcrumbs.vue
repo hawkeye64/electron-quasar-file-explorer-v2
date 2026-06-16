@@ -12,11 +12,11 @@
 </template>
 
 <script>
-import { getPlatform, getSep } from "../backend/utils.js";
-import { defineComponent, onBeforeMount, watch, reactive } from "vue";
+import { getPlatform, getSep } from '../backend/utils.js'
+import { defineComponent, onBeforeMount, watch, reactive } from 'vue'
 
 export default defineComponent({
-  name: "Breadcrumbs",
+  name: 'Breadcrumbs',
 
   props: {
     absolutePath: {
@@ -25,100 +25,100 @@ export default defineComponent({
     },
   },
 
-  emits: ["selected"],
+  emits: ['selected'],
 
   setup(props, { emit }) {
-    const toolbarLinks = reactive([]); // toolbar pathway (links to each folder in path)
-    let pathSep = "",
-      platform = "",
-      hasSep = false;
+    const toolbarLinks = reactive([]) // toolbar pathway (links to each folder in path)
+    let pathSep = '',
+      platform = '',
+      hasSep = false
 
     onBeforeMount(async () => {
       // get path separator for this system
-      pathSep = await getSep();
+      pathSep = await getSep()
       // get system platform
-      platform = await getPlatform();
+      platform = await getPlatform()
 
-      hasSep = true;
+      hasSep = true
 
       if (props.absolutePath) {
-        buildToolbarPath(props.absolutePath);
+        buildToolbarPath(props.absolutePath)
       }
-    });
+    })
 
     watch(
       () => props.absolutePath,
       (val) => {
-        buildToolbarPath(val);
+        buildToolbarPath(val)
       },
-    );
+    )
 
     function onFolderSelected(node) {
-      emit("selected", node.path);
+      emit('selected', node.path)
     }
 
     function buildToolbarPath(absolutePath) {
-      if (!hasSep) return;
+      if (!hasSep) return
 
       // remove existing
-      toolbarLinks.splice(0, toolbarLinks.length);
+      toolbarLinks.splice(0, toolbarLinks.length)
 
       // if empty, return
       if (!absolutePath) {
-        return;
+        return
       }
 
-      const toolbarLinks2 = [];
-      let path = "";
-      const parts = absolutePath.split(pathSep);
-      if (parts.length > 1 && parts[parts.length - 1].trim() === "") {
-        parts.pop();
+      const toolbarLinks2 = []
+      let path = ''
+      const parts = absolutePath.split(pathSep)
+      if (parts.length > 1 && parts[parts.length - 1].trim() === '') {
+        parts.pop()
       }
 
       for (let index = 0; index < parts.length; ++index) {
-        let name = "";
+        let name = ''
         if (index === 0) {
-          if (platform !== "win32") {
-            name += "(root)";
-            path = pathSep;
+          if (platform !== 'win32') {
+            name += '(root)'
+            path = pathSep
           }
 
-          if (platform === "win32") {
-            path += parts[index];
-            name += path;
-            if (path.endsWith(":") === true) {
-              path += pathSep;
-              name += pathSep;
+          if (platform === 'win32') {
+            path += parts[index]
+            name += path
+            if (path.endsWith(':') === true) {
+              path += pathSep
+              name += pathSep
             }
           }
         } else {
           if (path.charAt(path.length - 1) !== pathSep) {
-            path += pathSep;
-            name += pathSep;
+            path += pathSep
+            name += pathSep
           }
 
-          path += parts[index];
-          if (platform !== "win32" && index === 1) {
-            name += pathSep;
+          path += parts[index]
+          if (platform !== 'win32' && index === 1) {
+            name += pathSep
           }
-          name += parts[index];
+          name += parts[index]
         }
 
         const object = {
           path: path,
           name: name,
-        };
-        toolbarLinks2.push(object);
+        }
+        toolbarLinks2.push(object)
       }
-      toolbarLinks.push(...toolbarLinks2);
+      toolbarLinks.push(...toolbarLinks2)
     }
 
     return {
       toolbarLinks,
       onFolderSelected,
-    };
+    }
   },
-});
+})
 </script>
 
 <style>

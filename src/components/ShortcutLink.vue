@@ -11,10 +11,10 @@
 </template>
 
 <script>
-import { defineComponent } from "vue";
+import { defineComponent } from 'vue'
 
 export default defineComponent({
-  name: "ShortcutLink",
+  name: 'ShortcutLink',
 
   props: {
     name: {
@@ -24,29 +24,29 @@ export default defineComponent({
 
     path: {
       type: String,
-      default: "",
+      default: '',
     },
 
     icon: {
       type: String,
-      default: "",
+      default: '',
     },
   },
 
-  emits: ["shortcut"],
+  emits: ['shortcut'],
 
   setup(props, { emit }) {
     function onClick() {
       const shortcut = {
         name: props.name,
         path: props.path,
-      };
-      emit("shortcut", shortcut);
+      }
+      emit('shortcut', shortcut)
     }
 
     return {
       onClick,
-    };
+    }
   },
-});
+})
 </script>
