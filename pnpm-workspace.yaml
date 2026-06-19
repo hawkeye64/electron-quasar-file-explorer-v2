@@ -68,4 +68,5 @@ minimumReleaseAgeExclude:
   - 'vue-router@5.1.0'
   - '@vue/language-core@3.3.5'
   - vue-tsc@3.3.5
+  - '@types/node@26.0.0'
 trustLockfile: true
