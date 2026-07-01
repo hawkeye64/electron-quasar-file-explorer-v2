@@ -37,7 +37,7 @@ Short user-facing summary of what changed for Electron Quasar File Explorer user
 - Node.js: `>=24.14.1`
 - pnpm: `>=11.5.0`
 - Quasar: `2.20.0`
-- Quasar App Vite target: `@quasar/app-vite@3.0.0-rc.3`
+- Quasar App Vite target: `@quasar/app-vite@3.0.0-rc.4`
 - Electron:
 - Operating systems:
 
