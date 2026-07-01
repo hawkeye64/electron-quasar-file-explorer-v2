@@ -2,6 +2,12 @@
 
 ![File Explorer](images/file-explorer.png)
 
+<span class="badge-github-sponsors"><a href="https://github.com/sponsors/hawkeye64" title="Sponsor this project on GitHub"><img src="https://img.shields.io/badge/github-sponsors-ea4aaa.svg?logo=githubsponsors&logoColor=white" alt="GitHub Sponsors button" /></a></span>
+<span class="badge-paypal"><a href="https://paypal.me/hawkeye64" title="Donate to this project using Paypal"><img src="https://img.shields.io/badge/paypal-donate-yellow.svg" alt="PayPal donate button" /></a></span>
+
+[![Discord](https://img.shields.io/badge/discord-join%20server-738ADB?style=for-the-badge&logo=discord&logoColor=738ADB)](https://chat.quasar.dev)
+[![X](https://img.shields.io/badge/follow-@jgalbraith64-1DA1F2?style=for-the-badge&logo=x&logoColor=1DA1F2)](https://twitter.com/jgalbraith64)
+
 This is a follow-up to an article I wrote and published on [Medium](https://medium.com/quasar-framework/building-an-electron-file-explorer-with-quasar-and-vue-7bf94f1bbf6).
 
 This File Explorer now uses Quasar v2, Vue 3, and the current Quasar app-vite Electron workflow.
@@ -12,7 +18,7 @@ This is a rudimentary File Explorer that works for Windows, Mac and Linux system
 
 - App version `3.0.2`
 - Quasar `2.20.x`
-- `@quasar/app-vite` `3.0.0-rc`
+- `@quasar/app-vite` `3.0.0-rc.5`
 - Vue `3.5.x`
 - Electron `42.x`
 - Node `24.x`
