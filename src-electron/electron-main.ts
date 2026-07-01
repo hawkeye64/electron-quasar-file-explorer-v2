@@ -1,8 +1,7 @@
-import { BrowserWindow, app, nativeTheme } from 'electron'
+import { BrowserWindow, app, ipcMain, nativeTheme } from 'electron'
 import { unlinkSync } from 'node:fs'
 import path from 'node:path'
 import os from 'node:os'
-import { registerQuasarRuntime, resolveElectronAssetsPath } from '#q-app/electron/main'
 
 import { useHandler } from './handler'
 
@@ -11,6 +10,30 @@ import { useHandler } from './handler'
 
 // needed in case process is undefined under Linux
 const platform = process.platform || os.platform()
+
+function resolveElectronAssetsPath(...args: string[]) {
+  const root = app.getAppPath()
+  return path.join(
+    root,
+    import.meta.env.QUASAR_DEV ? '../../../src-electron/electron-assets' : 'electron-assets',
+    ...args,
+  )
+}
+
+function resolvePublicPath(...args: string[]) {
+  const root = app.getAppPath()
+  return path.join(root, import.meta.env.QUASAR_DEV ? '../../../public' : '.', ...args)
+}
+
+function registerQuasarRuntime() {
+  ipcMain.on('quasar-electron:resolve-electron-assets', (event, ...args: string[]) => {
+    event.returnValue = resolveElectronAssetsPath(...args)
+  })
+
+  ipcMain.on('quasar-electron:resolve-public', (event, ...args: string[]) => {
+    event.returnValue = resolvePublicPath(...args)
+  })
+}
 
 try {
   // Electron can hold stale DevTools extension metadata on Windows dark mode.
@@ -56,7 +79,7 @@ async function createWindow() {
 
 void app.whenReady().then(async () => {
   // Quasar's runtime wires aliases/assets used by Electron main/preload code.
-  await registerQuasarRuntime()
+  registerQuasarRuntime()
 
   // Register IPC channels before the renderer has a chance to call them.
   useHandler()
