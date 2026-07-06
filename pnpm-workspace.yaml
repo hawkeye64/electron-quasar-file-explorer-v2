@@ -6,6 +6,7 @@ allowBuilds:
   esbuild: true
 
 minimumReleaseAgeExclude:
+  - '@quasar/app-vite@3.0.0'
   - '@clack/core'
   - '@clack/prompts'
   - '@oxfmt/binding-android-arm-eabi@0.53.0'
@@ -63,7 +64,7 @@ minimumReleaseAgeExclude:
   - 'electron'
   - 'oxfmt@0.53.0'
   - 'oxlint@1.68.0'
-  - 'quasar@2.21.0'
+  - 'quasar@2.21.1'
   - 'vue@3.5.38'
   - 'vue-router@5.1.0'
   - '@vue/language-core@3.3.5'
