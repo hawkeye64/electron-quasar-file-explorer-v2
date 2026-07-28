@@ -16,13 +16,15 @@ This is a rudimentary File Explorer that works for Windows, Mac and Linux system
 
 ## Current Stack
 
-- App version `3.0.2`
-- Quasar `2.21.x`
-- `@quasar/app-vite` `3.0.0`
-- Vue `3.5.x`
-- Electron `42.x`
-- Node `24.x`
-- pnpm `11.x`
+- App version `3.0.4`
+- Quasar `2.23.3`
+- `@quasar/app-vite` `3.2.0`
+- Vue `3.5.40`
+- vue-router `5.2.0`
+- Electron `43.2.0`
+- electron-builder `26.15.3`
+- Node `24.14.1+`
+- pnpm `11.13.0`
 
 Electron runtime dependencies live in `src-electron/package.json`, while renderer dependencies live in the root `package.json`. This mirrors the current Quasar app-vite Electron setup and keeps packaged Electron dependencies separate from the browser app.
 
@@ -30,10 +32,31 @@ Electron runtime dependencies live in `src-electron/package.json`, while rendere
 
 - Quasar app-vite Electron mode with a separate `src-electron` runtime package.
 - Electron main and preload scripts using the current Quasar `#q-app/electron/*` runtime helpers.
-- A secure preload bridge with `contextIsolation: true`.
+- A narrow, validated preload bridge with an explicitly sandboxed and
+  context-isolated renderer.
+- A shared, structured-clone-safe contract between Electron main and the
+  renderer.
+- Bounded asynchronous filesystem scans that keep blocking Node filesystem
+  calls out of Electron's main process.
+- Purpose-built, size-limited thumbnail IPC instead of exposing arbitrary file
+  reads to the renderer.
 - Electron Builder packaging with app icons under `src-electron/electron-assets/icons`.
 - Custom app, favicon, and file-type icons generated from source SVG assets.
-- A Node 24 / pnpm 11 verification workflow suitable for CI.
+- Node's built-in test runner plus a Node 24 / pnpm 11 verification workflow
+  and cross-platform Electron build matrix.
+
+## How The Electron Boundary Works
+
+The Vue renderer never imports Node filesystem APIs. A component calls a helper
+in `src/backend/utils.js`, which uses the narrow `window.myShell` API exposed by
+`electron-preload.ts`. The preload sends a named IPC request, and `handler.ts`
+validates both the sending window and the request arguments before main-process
+code accesses the filesystem.
+
+Directory results use the shared types in `src/types/fileExplorer.ts`. They
+contain only structured-clone-safe primitives rather than Node `fs.Stats`
+objects. This is why values such as `mtimeMs` are copied explicitly before the
+result crosses IPC.
 
 ## Install
 
@@ -56,6 +79,9 @@ The dev command removes an inherited `ELECTRON_RUN_AS_NODE` environment variable
 pnpm verify
 ```
 
+`pnpm verify` runs formatting, lint, type checking, behavioral tests, and a
+production Electron build. The focused tests can be run with `pnpm test`.
+
 ## Build
 
 ```bash
@@ -67,6 +93,11 @@ The build creates the packaged Electron output in `dist/electron`.
 Items that have been added since the last tutorial:
 
 - Double-click to open a file based on its type
+- Grid and virtualized list views
+- File size and modification-time metadata
+- Lazy directory-tree loading
+- Bounded image thumbnails
+- Explicit loading, empty-folder, partial-read, and error states
 
 Removed since last tutorial:
 
@@ -79,6 +110,7 @@ For example:
 - copy, paste, cut, delete
 - file info/properties
 - plug and play drives (ie: USBs)
+- refresh and filesystem change notifications
 - and others
 
 Feel free to PR if you would like to make it better for others.
