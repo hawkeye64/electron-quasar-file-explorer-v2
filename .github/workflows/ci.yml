@@ -64,3 +64,8 @@ jobs:
 
       - name: Smoke-test packaged app
         run: pnpm smoke:packaged
+        env:
+          # GitHub's Linux runner cannot make Electron's chrome-sandbox helper
+          # root-owned with mode 4755. This exception applies only to the
+          # isolated smoke process; the packaged app remains sandboxed normally.
+          FILE_EXPLORER_SMOKE_NO_SANDBOX: ${{ runner.os == 'Linux' }}

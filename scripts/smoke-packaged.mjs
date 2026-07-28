@@ -66,21 +66,34 @@ async function getPackagedExecutable() {
 }
 
 const executable = await getPackagedExecutable()
+const disableSandbox = process.env.FILE_EXPLORER_SMOKE_NO_SANDBOX === 'true'
+
+if (disableSandbox === true && process.platform !== 'linux') {
+  throw new Error('The smoke-test sandbox exception is supported only on Linux')
+}
+
 const needsVirtualDisplay =
   process.platform === 'linux' &&
   process.env.DISPLAY === undefined &&
   process.env.WAYLAND_DISPLAY === undefined
+const executableArgs = disableSandbox === true ? ['--no-sandbox'] : []
 const command = needsVirtualDisplay ? 'xvfb-run' : executable
-const args = needsVirtualDisplay ? ['-a', executable] : []
+const args = needsVirtualDisplay ? ['-a', executable, ...executableArgs] : executableArgs
 
 console.info(`Launching packaged application smoke test: ${executable}`)
 
 await new Promise((resolve, reject) => {
+  const childEnv = {
+    ...process.env,
+    FILE_EXPLORER_SMOKE_TEST: '1',
+  }
+
+  // Some editor terminals export this variable so Electron-based tooling can
+  // act like Node. Remove it because this test must launch the real desktop app.
+  delete childEnv.ELECTRON_RUN_AS_NODE
+
   const child = spawn(command, args, {
-    env: {
-      ...process.env,
-      FILE_EXPLORER_SMOKE_TEST: '1',
-    },
+    env: childEnv,
     stdio: 'inherit',
   })
   const timeout = setTimeout(() => {
