@@ -19,7 +19,6 @@ interface FileExplorerNode {
   error?: unknown
   metadata?: {
     size: number
-    mtime: Date
     mtimeMs: number
   }
   mimetype?: string | false

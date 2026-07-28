@@ -163,8 +163,9 @@ export default defineComponent({
     }
 
     function getModified(node) {
-      if (!node.metadata?.mtime || node.metadata.mtime.valueOf() === 0) return ''
-      return date.formatDate(node.metadata.mtime, 'YYYY-MM-DD hh:mm:ss')
+      const modified = node.metadata?.mtimeMs
+      if (!modified) return ''
+      return date.formatDate(modified, 'YYYY-MM-DD HH:mm:ss')
     }
 
     function selectedStyleObject(node) {

@@ -1,12 +1,17 @@
-import { readdirSync, statSync, type Stats } from 'node:fs'
+import { readdirSync, statSync } from 'node:fs'
 import path from 'node:path'
+
+export interface FileMetadata {
+  size: number
+  mtimeMs: number
+}
 
 export interface FileInfo {
   path: string
   name?: string
   isDir?: boolean
   isSymLink?: boolean
-  metadata?: Stats
+  metadata?: FileMetadata
   children?: FileInfo[]
   error?: unknown
 }
@@ -28,7 +33,10 @@ function* walkFolders(folder: string): IterableIterator<FileInfo> {
           name: file,
           isDir: stat.isDirectory(),
           isSymLink: stat.isSymbolicLink(),
-          metadata: stat,
+          metadata: {
+            size: stat.size,
+            mtimeMs: stat.mtimeMs,
+          },
         }
       } catch (err) {
         // Yield per-file errors instead of failing the whole folder scan. The
