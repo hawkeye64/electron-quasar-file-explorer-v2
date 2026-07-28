@@ -1,45 +1,52 @@
-import { exec } from 'node:child_process'
-import { statSync } from 'node:fs'
+import { execFile } from 'node:child_process'
 import os from 'node:os'
-import path from 'node:path'
+import { promisify } from 'node:util'
 
-type WindowsDrivesCallback = (error: Error | null, drives: string[]) => void
+const execFileAsync = promisify(execFile)
 
-function getWindowsDrives(callback: WindowsDrivesCallback) {
+// PowerShell emits one drive root per line. Parsing is intentionally separate
+// from process execution so this platform-specific boundary can be tested on
+// Linux and macOS CI as ordinary string handling.
+export function parseWindowsDriveOutput(output: string): string[] {
+  return [
+    ...new Set(
+      output
+        .split(/\r?\n/)
+        .map((entry) => entry.trim())
+        .filter((entry) => /^[a-z]:[\\/]?$/i.test(entry))
+        .map((entry) => entry.slice(0, 2).toUpperCase()),
+    ),
+  ].sort()
+}
+
+export default async function getWindowsDrives(): Promise<string[]> {
   if (os.platform() !== 'win32') {
     throw new Error("getWindowsDrives called but process.platform !== 'win32'")
   }
 
-  const drives: string[] = []
+  // WMIC is no longer present on many current Windows installations.
+  // DriveInfo is part of .NET and execFile passes fixed arguments directly,
+  // avoiding both the deprecated dependency and command-shell interpolation.
+  const { stdout } = await execFileAsync(
+    'powershell.exe',
+    [
+      '-NoLogo',
+      '-NoProfile',
+      '-NonInteractive',
+      '-Command',
+      '[System.IO.DriveInfo]::GetDrives() | ForEach-Object { $_.Name }',
+    ],
+    {
+      windowsHide: true,
+      timeout: 10_000,
+    },
+  )
 
-  // WMIC returns a table whose first row is headers. This demo keeps the drive
-  // discovery simple and validates each candidate before showing it.
-  exec('wmic LOGICALDISK LIST BRIEF', (error, stdout) => {
-    if (error !== null) {
-      callback(error, drives)
-      return
-    }
+  const drives = parseWindowsDriveOutput(stdout)
 
-    const parts = stdout.split('\n')
-    if (parts.length > 0) {
-      parts.splice(0, 1)
+  if (drives.length === 0) {
+    throw new Error('Windows did not report any filesystem drives')
+  }
 
-      for (const part of parts) {
-        const drive = part.slice(0, 2)
-        if (drive.length > 0 && drive[drive.length - 1] === ':') {
-          try {
-            // If stat fails, the drive is not accessible to this process.
-            statSync(drive + path.sep)
-            drives.push(drive)
-          } catch (err) {
-            console.error(`Cannot stat windows drive: ${drive}`, err)
-          }
-        }
-      }
-    }
-
-    callback(null, drives)
-  })
+  return drives
 }
-
-export default getWindowsDrives

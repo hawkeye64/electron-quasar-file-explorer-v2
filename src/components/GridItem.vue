@@ -2,8 +2,13 @@
   <div
     class="griditemcontainer"
     :style="gridItemContainerStyleObject"
+    role="button"
+    tabindex="0"
+    :aria-label="`${node.isDir ? 'Open folder' : 'Open file'} ${node.name}`"
     @dblclick.prevent="onDblClick"
     @click="onClick"
+    @keydown.enter.prevent="onDblClick"
+    @keydown.space.prevent="onClick"
   >
     <div class="griditemimage" :style="gridItemImageStyleObject">
       <grid-item-image :node="node" :width="width" />
@@ -28,6 +33,7 @@ export default defineComponent({
   props: {
     node: {
       type: Object,
+      required: true,
     },
     selectedNode: {
       type: Object,
@@ -126,6 +132,10 @@ export default defineComponent({
     0 2px 2px rgba(0, 0, 0, 0.14),
     0 3px 1px -2px rgba(0, 0, 0, 0.12);
   transition: all 0.5s ease-in-out;
+}
+.griditemcontainer:focus-visible {
+  outline: 2px solid var(--q-primary);
+  outline-offset: 2px;
 }
 .griditemimage {
   display: flex;

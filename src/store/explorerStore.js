@@ -12,6 +12,9 @@ export function provideExplorerStore() {
     files: [],
     viewType: 'nodes',
     listType: 'grid',
+    loading: false,
+    error: '',
+    warningCount: 0,
   }
 
   provide(explorerStoreKey, import.meta.env.QUASAR_SERVER ? store : reactive(store))

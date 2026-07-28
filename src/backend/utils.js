@@ -5,17 +5,56 @@
  * That keeps IPC channel names centralized and easier to change later.
  */
 /* eslint-disable no-undef */
-// myShell is injected by src-electron/electron-preload.js.
 
-/**
- * Function that lists all files in a folder recursively
- * in a synchronous fashion
- *
- * @param {String} folder - folder to start with
- * @returns array of '{ children: [] (optional), name: string, path: string }'
- */
+const maximumCachedThumbnails = 200
+const maximumConcurrentThumbnailRequests = 4
+const thumbnailCache = new Map()
+const thumbnailQueue = []
+let activeThumbnailRequests = 0
+
+// IntersectionObserver can reveal many images during one fast scroll. Queueing
+// requests in the renderer avoids flooding the preload bridge; the separate
+// main-process limit protects Electron if another caller bypasses this helper.
+function runThumbnailQueue() {
+  while (
+    activeThumbnailRequests < maximumConcurrentThumbnailRequests &&
+    thumbnailQueue.length > 0
+  ) {
+    const nextRequest = thumbnailQueue.shift()
+    activeThumbnailRequests++
+
+    Promise.resolve()
+      .then(nextRequest.task)
+      .then(nextRequest.resolve, nextRequest.reject)
+      .finally(() => {
+        activeThumbnailRequests--
+        runThumbnailQueue()
+      })
+  }
+}
+
+function scheduleThumbnail(task) {
+  return new Promise((resolve, reject) => {
+    thumbnailQueue.push({ task, resolve, reject })
+    runThumbnailQueue()
+  })
+}
+
+function cacheThumbnail(key, thumbnailPromise) {
+  // Cache the Promise rather than only its eventual value so two components
+  // asking for the same thumbnail share one IPC request. Including mtime in the
+  // key naturally invalidates the thumbnail after the file changes.
+  if (thumbnailCache.size >= maximumCachedThumbnails) {
+    thumbnailCache.delete(thumbnailCache.keys().next().value)
+  }
+
+  thumbnailCache.set(key, thumbnailPromise)
+  thumbnailPromise.catch(() => {
+    thumbnailCache.delete(key)
+  })
+}
+
 export async function walkFolders(path) {
-  // The actual filesystem scan happens in the Electron main process.
   return await myShell.walkFolders(path)
 }
 
@@ -27,57 +66,22 @@ export async function shortcutDirs() {
   return await myShell.shortcutFolders()
 }
 
-/**
- * @returns The platform specific path separator ("\\" | "/")
- * '\' on Windows
- * '/' on POSIX
- */
-export async function getSep() {
-  return await myShell.sep()
+export async function getEnvironment() {
+  return await myShell.environment()
 }
 
 export async function openFile(path) {
   return await myShell.openFile(path)
 }
 
-export async function getPlatform() {
-  return await myShell.platform()
-}
+export async function getImageThumbnail(node, size) {
+  const key = `${node.path}:${node.metadata?.mtimeMs ?? 0}:${size}`
+  let thumbnail = thumbnailCache.get(key)
 
-export async function pathExists(path) {
-  return await myShell.pathExists(path)
-}
+  if (thumbnail === void 0) {
+    thumbnail = scheduleThumbnail(() => myShell.imageThumbnail(node.path, size))
+    cacheThumbnail(key, thumbnail)
+  }
 
-export async function readFile(path) {
-  return await myShell.readFile(path)
-}
-
-export async function getImageFile(path, mimeType) {
-  const buffer = await myShell.readFile(path)
-  return await arrayBufferToDataUrl(buffer, mimeType)
-}
-
-function arrayBufferToDataUrl(buffer, mimeType) {
-  return new Promise((resolve, reject) => {
-    const blob = new Blob([buffer], {
-      type: mimeType || 'application/octet-stream',
-    })
-    const reader = new FileReader()
-
-    reader.onload = () => {
-      if (typeof reader.result === 'string') {
-        resolve(reader.result)
-      } else {
-        reject(new Error('Failed to encode the image thumbnail'))
-      }
-    }
-    reader.onerror = () => {
-      reject(reader.error || new Error('Failed to read the image thumbnail'))
-    }
-    reader.readAsDataURL(blob)
-  })
-}
-
-export async function getMimeType(path) {
-  return await myShell.getMimeType(path)
+  return await thumbnail
 }

@@ -1,7 +1,20 @@
 <template>
-  <div v-if="contents && contents.length" class="contents-container">
-    <div class="contents-wrapper">
-      <div v-if="listType === 'grid'" class="row justify-left">
+  <div class="contents-container">
+    <q-banner v-if="error" class="bg-negative text-white" role="alert">
+      {{ error }}
+    </q-banner>
+
+    <q-banner v-else-if="warningCount > 0" class="bg-warning text-dark" role="status">
+      {{ warningCount }} {{ warningCount === 1 ? 'entry was' : 'entries were' }} skipped because
+      they could not be read.
+    </q-banner>
+
+    <div v-if="!loading && !error && contents.length === 0" class="empty-folder" role="status">
+      This folder is empty.
+    </div>
+
+    <div v-else-if="!error" class="contents-wrapper">
+      <div v-if="listType === 'grid'" class="row justify-left" aria-label="Folder contents">
         <template v-for="node in contents" :key="node.path">
           <grid-item
             :node="node"
@@ -14,12 +27,19 @@
       </div>
 
       <div v-if="listType === 'list'" id="content-scroll" style="min-height: 100%">
+        <!--
+          Quasar's virtual scroll keeps the DOM bounded even when a folder
+          contains thousands of entries. The complete row array remains
+          available for sorting, but only visible rows are rendered.
+        -->
         <q-table
           id="content"
           v-model:pagination="pagination"
           dense
           hide-bottom
           flat
+          virtual-scroll
+          :virtual-scroll-item-size="32"
           :rows="contents"
           :columns="columns"
           row-key="path"
@@ -33,8 +53,12 @@
               :props="props"
               :style="selectedStyleObject(props.row)"
               class="non-selectable cursor-pointer"
+              tabindex="0"
+              :aria-label="`${props.row.isDir ? 'Folder' : 'File'} ${props.row.name}`"
               @click.stop="rowClick(props.row)"
               @dblclick.stop="dblRowClick(props.row)"
+              @keydown.enter.prevent="dblRowClick(props.row)"
+              @keydown.space.prevent="rowClick(props.row)"
             >
               <q-td key="type" :props="props" :style="'width: ' + imageWidth + 'px;'">
                 <grid-item-image :key="props.row.path" :node="props.row" :width="imageWidth" />
@@ -53,15 +77,18 @@
         </q-table>
       </div>
     </div>
+
+    <q-inner-loading :showing="loading" label="Loading folder…" />
   </div>
 </template>
 
 <script>
-import { defineComponent, ref, reactive } from 'vue'
+import { defineComponent, reactive, ref, watch } from 'vue'
 import { date } from 'quasar'
 import prettyBytes from 'pretty-bytes'
-import GridItem from '../components/GridItem.vue'
-import GridItemImage from '../components/GridItemImage.vue'
+import GridItem from './GridItem.vue'
+import GridItemImage from './GridItemImage.vue'
+import { isValidTimestamp } from '../utils/fileExplorer.js'
 
 export default defineComponent({
   name: 'Contents',
@@ -74,9 +101,23 @@ export default defineComponent({
   props: {
     contents: {
       type: Array,
+      default: () => [],
     },
     listType: {
       type: String,
+      required: true,
+    },
+    loading: {
+      type: Boolean,
+      default: false,
+    },
+    error: {
+      type: String,
+      default: '',
+    },
+    warningCount: {
+      type: Number,
+      default: 0,
     },
   },
 
@@ -134,6 +175,17 @@ export default defineComponent({
         descending: false,
       })
 
+    watch(
+      () => props.contents.map((entry) => entry.path),
+      (paths) => {
+        // A selected row belongs to one directory listing. Clear it when a
+        // navigation replaces that listing and the selected path disappears.
+        if (selectedNode.value && paths.includes(selectedNode.value.path) !== true) {
+          selectedNode.value = null
+        }
+      },
+    )
+
     // when a node is single-clicked
     function onClick(node) {
       selectedNode.value = node
@@ -164,7 +216,7 @@ export default defineComponent({
 
     function getModified(node) {
       const modified = node.metadata?.mtimeMs
-      if (!modified) return ''
+      if (isValidTimestamp(modified) !== true) return ''
       return date.formatDate(modified, 'YYYY-MM-DD HH:mm:ss')
     }
 
@@ -205,6 +257,13 @@ export default defineComponent({
   width: 100%;
   height: calc(100vh - 50px);
   overflow: auto;
+}
+
+.empty-folder {
+  display: grid;
+  min-height: 200px;
+  place-items: center;
+  color: $grey-7;
 }
 
 .contents-wrapper {

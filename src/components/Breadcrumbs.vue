@@ -1,19 +1,19 @@
 <template>
   <div class="breadcrumbs">
-    <span
+    <button
       v-for="object in toolbarLinks"
       :key="object.path"
+      type="button"
       class="breadcrumb"
       @click="onFolderSelected(object)"
     >
       {{ object.name }}
-    </span>
+    </button>
   </div>
 </template>
 
 <script>
-import { getPlatform, getSep } from '../backend/utils.js'
-import { defineComponent, onBeforeMount, watch, reactive } from 'vue'
+import { defineComponent, watch, reactive } from 'vue'
 
 export default defineComponent({
   name: 'Breadcrumbs',
@@ -23,34 +23,27 @@ export default defineComponent({
       type: String,
       required: true,
     },
+    pathSeparator: {
+      type: String,
+      required: true,
+    },
+    platform: {
+      type: String,
+      required: true,
+    },
   },
 
   emits: ['selected'],
 
   setup(props, { emit }) {
-    const toolbarLinks = reactive([]) // toolbar pathway (links to each folder in path)
-    let pathSep = '',
-      platform = '',
-      hasSep = false
-
-    onBeforeMount(async () => {
-      // get path separator for this system
-      pathSep = await getSep()
-      // get system platform
-      platform = await getPlatform()
-
-      hasSep = true
-
-      if (props.absolutePath) {
-        buildToolbarPath(props.absolutePath)
-      }
-    })
+    const toolbarLinks = reactive([])
 
     watch(
-      () => props.absolutePath,
-      (val) => {
-        buildToolbarPath(val)
+      () => [props.absolutePath, props.pathSeparator, props.platform],
+      ([absolutePath]) => {
+        buildToolbarPath(absolutePath)
       },
+      { immediate: true },
     )
 
     function onFolderSelected(node) {
@@ -58,19 +51,20 @@ export default defineComponent({
     }
 
     function buildToolbarPath(absolutePath) {
-      if (!hasSep) return
+      if (!props.pathSeparator) return
 
-      // remove existing
+      // The main process supplies the platform separator through the preload
+      // bridge. Using it here supports POSIX roots and Windows drive roots
+      // without exposing Node's path module to the sandboxed renderer.
       toolbarLinks.splice(0, toolbarLinks.length)
 
-      // if empty, return
       if (!absolutePath) {
         return
       }
 
       const toolbarLinks2 = []
       let path = ''
-      const parts = absolutePath.split(pathSep)
+      const parts = absolutePath.split(props.pathSeparator)
       if (parts.length > 1 && parts[parts.length - 1].trim() === '') {
         parts.pop()
       }
@@ -78,28 +72,28 @@ export default defineComponent({
       for (let index = 0; index < parts.length; ++index) {
         let name = ''
         if (index === 0) {
-          if (platform !== 'win32') {
+          if (props.platform !== 'win32') {
             name += '(root)'
-            path = pathSep
+            path = props.pathSeparator
           }
 
-          if (platform === 'win32') {
+          if (props.platform === 'win32') {
             path += parts[index]
             name += path
             if (path.endsWith(':') === true) {
-              path += pathSep
-              name += pathSep
+              path += props.pathSeparator
+              name += props.pathSeparator
             }
           }
         } else {
-          if (path.charAt(path.length - 1) !== pathSep) {
-            path += pathSep
-            name += pathSep
+          if (path.charAt(path.length - 1) !== props.pathSeparator) {
+            path += props.pathSeparator
+            name += props.pathSeparator
           }
 
           path += parts[index]
-          if (platform !== 'win32' && index === 1) {
-            name += pathSep
+          if (props.platform !== 'win32' && index === 1) {
+            name += props.pathSeparator
           }
           name += parts[index]
         }
@@ -123,18 +117,30 @@ export default defineComponent({
 
 <style>
 .breadcrumbs {
+  display: flex;
+  align-items: center;
   width: 100%;
-  height: 20px;
+  min-height: 28px;
   margin-left: 5px;
+  padding: 0 4px;
   background-color: rgba(0, 0, 0, 0.3);
   border-radius: 4px;
+  overflow-x: auto;
 }
 
 .breadcrumb {
+  appearance: none;
+  border: 0;
+  padding: 2px;
+  color: inherit;
+  background: transparent;
+  font: inherit;
   cursor: pointer;
+  white-space: nowrap;
 }
 
-.breadcrumb:hover {
+.breadcrumb:hover,
+.breadcrumb:focus-visible {
   text-decoration: underline;
 }
 </style>

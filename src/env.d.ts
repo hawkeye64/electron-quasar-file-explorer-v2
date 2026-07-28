@@ -1,31 +1,16 @@
-interface FileExplorerShell {
-  openFile: (path: string) => Promise<string>
-  walkFolders: (path: string) => Promise<FileExplorerNode[]>
-  windowsDrives: () => Promise<string[]>
-  shortcutFolders: () => Promise<Record<string, string>>
-  sep: () => Promise<string>
-  platform: () => Promise<string>
-  pathExists: (path: string) => Promise<boolean>
-  readFile: (path: string) => Promise<ArrayBuffer>
-  getMimeType: (path: string) => Promise<string | false>
-}
+import type {
+  DirectoryListing,
+  FileExplorerEnvironment,
+  FileExplorerNode,
+  FileExplorerShell,
+} from './types/fileExplorer'
 
-interface FileExplorerNode {
-  path: string
-  name?: string
-  isDir?: boolean
-  isSymLink?: boolean
-  children?: FileExplorerNode[]
-  error?: unknown
-  metadata?: {
-    size: number
-    mtimeMs: number
+declare global {
+  interface Window {
+    myShell: FileExplorerShell
   }
-  mimetype?: string | false
+
+  const myShell: FileExplorerShell
 }
 
-interface Window {
-  myShell: FileExplorerShell
-}
-
-declare const myShell: FileExplorerShell
+export type { DirectoryListing, FileExplorerEnvironment, FileExplorerNode, FileExplorerShell }

@@ -1,13 +1,13 @@
 <template>
-  <div class="square" :style="gridItemImageContainerStyleObject">
+  <div ref="containerRef" class="square" :style="gridItemImageContainerStyleObject">
     <span class="img-helper" />
-    <img :src="image" :style="gridItemImageStyleObject" alt="" />
+    <img :src="image" :style="gridItemImageStyleObject" alt="" loading="lazy" decoding="async" />
   </div>
 </template>
 
 <script>
-import { defineComponent, ref, computed, onBeforeMount } from 'vue'
-import { getImageFile } from '../backend/utils.js'
+import { computed, defineComponent, onBeforeUnmount, onMounted, ref } from 'vue'
+import { getImageThumbnail } from '../backend/utils.js'
 
 export default defineComponent({
   name: 'GridItemImage',
@@ -25,11 +25,38 @@ export default defineComponent({
 
   setup(props) {
     const basePath = 'images/',
-      image = ref(null)
+      containerRef = ref(null),
+      image = ref(getBundledImage())
+    let imageObserver = null,
+      thumbnailRequested = false
 
-    onBeforeMount(async () => {
-      // Pick either a bundled icon or an inline thumbnail for this file entry.
-      image.value = await getImage()
+    onMounted(() => {
+      if (isThumbnailCandidate() !== true) return
+
+      // IntersectionObserver keeps large image directories cheap: the generic
+      // file-type icon is immediate, while real thumbnails are requested only
+      // as their grid/list items approach the viewport.
+      if (typeof IntersectionObserver !== 'function') {
+        void loadThumbnail()
+        return
+      }
+
+      imageObserver = new IntersectionObserver(
+        (entries) => {
+          if (entries.some((entry) => entry.isIntersecting)) {
+            imageObserver?.disconnect()
+            void loadThumbnail()
+          }
+        },
+        { rootMargin: '100px' },
+      )
+      if (containerRef.value) {
+        imageObserver.observe(containerRef.value)
+      }
+    })
+
+    onBeforeUnmount(() => {
+      imageObserver?.disconnect()
     })
 
     const gridItemImageContainerStyleObject = computed(() => {
@@ -47,12 +74,11 @@ export default defineComponent({
       }
     })
 
-    async function getImage() {
-      // mimeType can be false if it was not recognized
+    function getBundledImage() {
       if (props.node.mimetype) {
         const parts = props.node.mimetype.split('/')
         const type = parts[0]
-        const subtype = parts[1]
+
         if (type === 'pdf' || props.node.mimetype === 'application/pdf') {
           return basePath + 'pdf.png'
         } else if (
@@ -68,17 +94,7 @@ export default defineComponent({
         } else if (type === 'application') {
           return basePath + 'binary.png'
         } else if (type === 'image') {
-          if (subtype === 'svg+xml') {
-            // Rendering arbitrary local SVG directly can execute unexpected
-            // content in some contexts, so show a generic image icon instead.
-            return basePath + 'image.png'
-          }
-          try {
-            // return a thumbnail image
-            return await getImageFile(props.node.path, props.node.mimetype)
-          } catch (err) {
-            return basePath + 'image.png'
-          }
+          return basePath + 'image.png'
         }
       }
 
@@ -90,7 +106,30 @@ export default defineComponent({
       return basePath + 'blank.png'
     }
 
+    function isThumbnailCandidate() {
+      return (
+        props.node.mimetype?.startsWith('image/') === true &&
+        props.node.mimetype !== 'image/svg+xml'
+      )
+    }
+
+    async function loadThumbnail() {
+      if (thumbnailRequested) return
+      thumbnailRequested = true
+
+      try {
+        const thumbnail = await getImageThumbnail(props.node, props.width)
+        if (thumbnail) {
+          image.value = thumbnail
+        }
+      } catch {
+        // Rejections are reserved for invalid IPC requests. The generic image
+        // icon is already displayed as the safe visual fallback.
+      }
+    }
+
     return {
+      containerRef,
       gridItemImageContainerStyleObject,
       gridItemImageStyleObject,
       image,
@@ -99,7 +138,7 @@ export default defineComponent({
 })
 </script>
 
-<style lang="scss">
+<style lang="scss" scoped>
 .square {
   text-align: center;
 }

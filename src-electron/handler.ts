@@ -1,52 +1,58 @@
-import { app, ipcMain, shell } from 'electron'
-import { access } from 'node:fs'
-import { readFile } from 'node:fs/promises'
+import { app, ipcMain, shell, type IpcMainInvokeEvent, type WebContents } from 'electron'
 import os from 'node:os'
 import path from 'node:path'
-import mime from 'mime'
 
-import walkFolders, { type FileInfo } from './walkFolders'
+import { createImageThumbnail } from './imageThumbnail'
+import { validateAbsolutePath, validateThumbnailSize } from './validation'
+import walkFolders from './walkFolders'
 import windowsDrives from './getWindowsDrives'
 
-function pathExists(filePath: string) {
-  return new Promise<boolean>((resolve) => {
-    access(filePath, (error) => {
-      resolve(error === null)
-    })
+const trustedRendererIds = new Set<number>()
+
+// Register each BrowserWindow we create and forget it when destroyed. Checking
+// this identity on every IPC call means an unexpected window or webview cannot
+// reuse the preload channel merely because it knows a channel name.
+export function trustRenderer(webContents: WebContents) {
+  trustedRendererIds.add(webContents.id)
+  webContents.once('destroyed', () => {
+    trustedRendererIds.delete(webContents.id)
+  })
+}
+
+function assertTrustedSender(event: IpcMainInvokeEvent) {
+  if (
+    trustedRendererIds.has(event.sender.id) !== true ||
+    event.senderFrame === null ||
+    event.senderFrame !== event.sender.mainFrame
+  ) {
+    throw new Error('IPC request did not originate from the trusted application renderer')
+  }
+}
+
+function handle(
+  channel: string,
+  listener: (event: IpcMainInvokeEvent, ...args: unknown[]) => unknown,
+) {
+  // Centralizing sender validation makes it difficult to add a future channel
+  // that accidentally bypasses the same trust boundary.
+  ipcMain.handle(channel, async (event, ...args) => {
+    assertTrustedSender(event)
+    return await listener(event, ...args)
   })
 }
 
 // Every channel registered here is exposed through electron-preload.ts. Keeping
 // filesystem work in the main process lets the renderer stay sandbox-friendly.
 export function useHandler() {
-  ipcMain.handle('myShell:walkFolders', async (_event, requestedPath: string) => {
-    const folders: FileInfo[] = []
-    for (const fileInfo of walkFolders(requestedPath)) {
-      if (fileInfo.isDir === true && fileInfo.error === void 0) {
-        // QTree treats children: [] as "expandable"; the renderer lazy-loads
-        // the actual children only when the user opens that branch.
-        fileInfo.children = []
-      }
-      folders.push(fileInfo)
-    }
-    return folders
+  handle('myShell:walkFolders', async (_event, requestedPath) => {
+    return await walkFolders(validateAbsolutePath(requestedPath))
   })
 
-  ipcMain.handle('myShell:windowsDrives', async () => {
-    return new Promise<string[]>((resolve, reject) => {
-      windowsDrives((error, drives) => {
-        if (error === null) {
-          resolve(drives)
-        } else {
-          console.error(error)
-          reject(error)
-        }
-      })
-    })
+  handle('myShell:windowsDrives', async () => {
+    return await windowsDrives()
   })
 
-  ipcMain.handle('myShell:shortcutFolders', async () => {
-    // app.getPath normalizes common OS folders across Windows, macOS, and Linux.
+  handle('myShell:shortcutFolders', () => {
     return {
       home: app.getPath('home'),
       desktop: app.getPath('desktop'),
@@ -58,29 +64,21 @@ export function useHandler() {
     }
   })
 
-  ipcMain.handle('myShell:sep', async () => {
-    return path.sep
+  handle('myShell:environment', () => {
+    return {
+      pathSeparator: path.sep,
+      platform: os.platform(),
+    }
   })
 
-  ipcMain.handle('myShell:platform', async () => {
-    return os.platform()
+  handle('myShell:openFile', async (_event, requestedPath) => {
+    return await shell.openPath(validateAbsolutePath(requestedPath))
   })
 
-  ipcMain.handle('myShell:pathExists', async (_event, requestedPath: string) => {
-    return await pathExists(requestedPath)
-  })
-
-  ipcMain.handle('myShell:openFile', async (_event, requestedPath: string) => {
-    // Delegate opening to the operating system's default application.
-    return await shell.openPath(requestedPath)
-  })
-
-  ipcMain.handle('myShell:readFile', async (_event, requestedPath: string) => {
-    // Used by the renderer to create image thumbnails from local files.
-    return await readFile(requestedPath)
-  })
-
-  ipcMain.handle('myShell:getMimeType', async (_event, requestedPath: string) => {
-    return mime.getType(requestedPath)
+  handle('myShell:imageThumbnail', async (_event, requestedPath, requestedSize) => {
+    return await createImageThumbnail(
+      validateAbsolutePath(requestedPath),
+      validateThumbnailSize(requestedSize),
+    )
   })
 }

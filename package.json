@@ -6,7 +6,7 @@
   "author": "Jeff Galbraith <galbraith64@gmail.com>",
   "type": "module",
   "scripts": {
-    "clean": "rm -rf node_modules src-electron/node_modules dist .quasar",
+    "clean": "node scripts/clean.mjs",
     "dev": "node scripts/dev-electron.mjs",
     "build": "quasar build -m electron",
     "build:ci": "quasar build -m electron --publish never",
@@ -16,7 +16,7 @@
     "format": "oxfmt --ignore-path .oxfmtignore .",
     "format:check": "oxfmt --check --ignore-path .oxfmtignore .",
     "typecheck": "vue-tsc --project tsconfig.vue-tsc.json --noEmit",
-    "test": "echo \"No test specified\" && exit 0",
+    "test": "node --experimental-strip-types --test \"test/**/*.test.{js,ts}\"",
     "verify:fast": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm test",
     "verify:build": "pnpm --dir src-electron install --frozen-lockfile && pnpm build:ci",
     "check:all": "pnpm verify",
