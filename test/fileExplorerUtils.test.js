@@ -2,8 +2,12 @@ import assert from 'node:assert/strict'
 import test from 'node:test'
 
 import {
+  areFileSystemPathsEqual,
   createLatestRequestGuard,
+  getFileSystemRoot,
   getFileSystemErrorMessage,
+  getShortcutLinks,
+  getTreePathKeys,
   isValidTimestamp,
 } from '../src/utils/fileExplorer.js'
 
@@ -39,4 +43,48 @@ test('createLatestRequestGuard accepts only the most recent request', () => {
 
   assert.equal(requests.isLatest(firstRequest), false)
   assert.equal(requests.isLatest(secondRequest), true)
+})
+
+test('tree path helpers handle POSIX, Windows drive, and Windows UNC roots', () => {
+  assert.equal(getFileSystemRoot('/home/jeff', '/', 'linux'), '/')
+  assert.deepEqual(getTreePathKeys('/home/jeff/Documents', '/', '/'), [
+    '/home',
+    '/home/jeff',
+    '/home/jeff/Documents',
+  ])
+
+  assert.equal(getFileSystemRoot('c:\\Users\\Jeff', '\\', 'win32'), 'C:\\')
+  assert.deepEqual(getTreePathKeys('C:\\Users\\Jeff', 'C:\\', '\\'), [
+    'C:\\Users',
+    'C:\\Users\\Jeff',
+  ])
+
+  assert.equal(getFileSystemRoot('\\\\server\\share\\folder', '\\', 'win32'), '\\\\server\\share\\')
+})
+
+test('filesystem path equality highlights only the exact shortcut location', () => {
+  assert.equal(areFileSystemPathsEqual('/home/jeff/', '/home/jeff', 'linux'), true)
+  assert.equal(areFileSystemPathsEqual('/home/jeff/Documents', '/home/jeff', 'linux'), false)
+  assert.equal(areFileSystemPathsEqual('c:\\Users\\Jeff', 'C:\\Users\\Jeff\\', 'win32'), true)
+  assert.equal(areFileSystemPathsEqual('C:\\Users\\Jeff', 'C:\\Users\\Jeff\\Work', 'win32'), false)
+  assert.equal(areFileSystemPathsEqual('/Users/Jeff', '/users/jeff', 'darwin'), false)
+})
+
+test('shortcut labels follow shared conventions and the macOS Movies name', () => {
+  const folders = {
+    home: '/Users/Jeff',
+    desktop: '/Users/Jeff/Desktop',
+    documents: '/Users/Jeff/Documents',
+    downloads: '/Users/Jeff/Downloads',
+    pictures: '/Users/Jeff/Pictures',
+    music: '/Users/Jeff/Music',
+    videos: '/Users/Jeff/Movies',
+  }
+
+  assert.deepEqual(
+    getShortcutLinks(folders, 'linux').map(({ name }) => name),
+    ['Home', 'Desktop', 'Documents', 'Downloads', 'Pictures', 'Music', 'Videos'],
+  )
+  assert.equal(getShortcutLinks(folders, 'darwin').at(-1).name, 'Movies')
+  assert.equal(getShortcutLinks(folders, 'darwin').at(-1).path, '/Users/Jeff/Movies')
 })

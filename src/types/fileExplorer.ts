@@ -37,11 +37,21 @@ export interface FileExplorerEnvironment {
   platform: NodeJS.Platform
 }
 
+export interface ShortcutFolders {
+  home: string
+  desktop: string
+  documents: string
+  downloads: string
+  pictures: string
+  music: string
+  videos: string
+}
+
 export interface FileExplorerShell {
   openFile: (path: string) => Promise<string>
   walkFolders: (path: string) => Promise<DirectoryListing>
   windowsDrives: () => Promise<string[]>
-  shortcutFolders: () => Promise<Record<string, string>>
+  shortcutFolders: () => Promise<ShortcutFolders>
   environment: () => Promise<FileExplorerEnvironment>
   imageThumbnail: (path: string, size: number) => Promise<string | null>
 }

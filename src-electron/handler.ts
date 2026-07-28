@@ -56,11 +56,11 @@ export function useHandler() {
     return {
       home: app.getPath('home'),
       desktop: app.getPath('desktop'),
-      document: app.getPath('documents'),
-      download: app.getPath('downloads'),
-      picture: app.getPath('pictures'),
-      audio: app.getPath('music'),
-      video: app.getPath('videos'),
+      documents: app.getPath('documents'),
+      downloads: app.getPath('downloads'),
+      pictures: app.getPath('pictures'),
+      music: app.getPath('music'),
+      videos: app.getPath('videos'),
     }
   })
 

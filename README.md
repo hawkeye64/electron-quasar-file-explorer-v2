@@ -95,7 +95,8 @@ Items that have been added since the last tutorial:
 - Double-click to open a file based on its type
 - Grid and virtualized list views
 - File size and modification-time metadata
-- Lazy directory-tree loading
+- Startup in the current user's home directory on every supported OS
+- Location-aware shortcut highlighting, tree expansion, and scrolling
 - Bounded image thumbnails
 - Explicit loading, empty-folder, partial-read, and error states
 

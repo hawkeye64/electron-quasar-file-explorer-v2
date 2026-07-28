@@ -31,6 +31,7 @@
           v-for="shortcut in shortcutLinks"
           :key="shortcut.name"
           v-bind="shortcut"
+          :active="isShortcutSelected(shortcut.path)"
           @shortcut="onShortcut"
         />
       </q-list>
@@ -44,6 +45,7 @@
         label="Drives"
         dense
         class="q-mx-lg q-mb-md"
+        @update:model-value="onDriveSelected"
       />
 
       <q-separator v-if="drives.length > 1" />
@@ -61,7 +63,13 @@
         style="width: 100%"
         @lazy-load="onLazyLoad"
         @update:selected="onSelectedFolder"
-      />
+      >
+        <template #default-header="{ node }">
+          <div :ref="(element) => setTreeNodeElement(node.path, element)">
+            {{ node.name }}
+          </div>
+        </template>
+      </q-tree>
     </q-drawer>
 
     <q-page-container>
@@ -83,7 +91,7 @@
 <script>
 import ShortcutLink from '@/components/ShortcutLink.vue'
 import Breadcrumbs from '@/components/Breadcrumbs.vue'
-import { defineComponent, ref, reactive, onBeforeMount, watch, nextTick } from 'vue'
+import { defineComponent, ref, reactive, onBeforeMount, nextTick } from 'vue'
 import {
   walkFolders,
   windowsDrives,
@@ -92,7 +100,14 @@ import {
   getEnvironment,
 } from '../backend/utils.js'
 import { useExplorerStore } from '../store/explorerStore.js'
-import { createLatestRequestGuard, getFileSystemErrorMessage } from '../utils/fileExplorer.js'
+import {
+  areFileSystemPathsEqual,
+  createLatestRequestGuard,
+  getFileSystemRoot,
+  getFileSystemErrorMessage,
+  getShortcutLinks,
+  getTreePathKeys,
+} from '../utils/fileExplorer.js'
 import Contents from '../components/Contents.vue'
 
 export default defineComponent({
@@ -122,58 +137,63 @@ export default defineComponent({
     // read from replacing the folder the user selected most recently.
     const navigationRequests = createLatestRequestGuard()
 
+    // Tree navigation has its own lifecycle: revealing a shortcut may need to
+    // change roots and lazy-load several ancestors before QTree can select it.
+    const treeRevealRequests = createLatestRequestGuard(),
+      loadedTreeNodes = new Set(),
+      treeLoadStates = new Map(),
+      treeNodeElements = new Map()
+    let treeRootPath = ''
+
     onBeforeMount(async () => {
       try {
         const [environment, shortcuts] = await Promise.all([getEnvironment(), shortcutDirs()])
         pathSeparator.value = environment.pathSeparator
         platform.value = environment.platform
 
-        let initialFolder = pathSeparator.value
+        // Electron resolves the correct per-user home directory on every
+        // supported OS. It is a more useful and familiar startup location than
+        // exposing the filesystem root or Windows system drive by default.
+        const initialFolder = shortcuts.home
 
         if (platform.value === 'win32') {
           const localDrives = await windowsDrives()
           drives.splice(0, drives.length, ...localDrives)
-          currentDrive.value = drives.find((drive) => drive.toLowerCase() === 'c:') ?? drives[0]
-          initialFolder = currentDrive.value + pathSeparator.value
+          const homeDrive = initialFolder.slice(0, 2).toUpperCase()
+          currentDrive.value =
+            drives.find((drive) => drive === homeDrive) ??
+            drives.find((drive) => drive.toLowerCase() === 'c:') ??
+            drives[0]
         }
 
         setSelectedFolder(initialFolder)
-        const listing = await loadSelectedFolder(initialFolder)
+        shortcutLinks.push(...getShortcutLinks(shortcuts, platform.value))
 
-        if (selectedFolder.value === initialFolder && listing?.error === void 0) {
-          folderTree.splice(0, folderTree.length, ...getSideFolders(listing.entries))
-        }
-
-        shortcutLinks.push(
-          { name: 'Home', path: shortcuts.home, icon: 'home' },
-          { name: 'Desktop', path: shortcuts.desktop, icon: 'desktop_windows' },
-          { name: 'Documents', path: shortcuts.document, icon: 'folder' },
-          { name: 'Download', path: shortcuts.download, icon: 'vertical_align_bottom' },
-          { name: 'Pictures', path: shortcuts.picture, icon: 'image' },
-          { name: 'Audio', path: shortcuts.audio, icon: 'music_note' },
-          { name: 'Video', path: shortcuts.video, icon: 'local_movies' },
-        )
+        // The content pane opens at home, while the tree keeps its natural
+        // filesystem root and expands down to home just like a native explorer.
+        await Promise.all([loadSelectedFolder(initialFolder), revealTreePath(initialFolder)])
       } catch (error) {
         store.error = getFileSystemErrorMessage(error)
         store.loading = false
       }
     })
 
-    // Windows has multiple filesystem roots, so switching drives resets the
-    // side tree and content pane to the selected drive root.
-    watch(currentDrive, async (drive) => {
+    // This handler runs only when the user changes QSelect. Updating
+    // currentDrive programmatically while navigating must not redirect a
+    // Windows home/shortcut path back to its drive root.
+    async function onDriveSelected(drive) {
       if (!drive) return
 
       const driveRoot = drive + pathSeparator.value
       if (selectedFolder.value === driveRoot) return
 
       setSelectedFolder(driveRoot)
-      const listing = await loadSelectedFolder(driveRoot)
+      await loadSelectedFolder(driveRoot)
 
-      if (selectedFolder.value === driveRoot && listing?.error === void 0) {
-        folderTree.splice(0, folderTree.length, ...getSideFolders(listing.entries))
+      if (selectedFolder.value === driveRoot) {
+        await revealTreePath(driveRoot)
       }
-    })
+    }
 
     function sortContents(entries) {
       return [...entries].sort((a, b) =>
@@ -234,18 +254,133 @@ export default defineComponent({
 
         if (listing.error) {
           fail()
+          finishTreeLoad(key, false)
         } else {
           done(getSideFolders(listing.entries))
+          loadedTreeNodes.add(key)
+
+          // QTree updates its internal lazy/expanded metadata on nextTick after
+          // done(). Resolve programmatic expansion only when that state is ready.
+          await nextTick()
+          finishTreeLoad(key, true)
         }
       } catch {
         // QTree owns its lazy-loading indicator, so report failure through the
         // callback supplied by Quasar instead of mutating page-level state.
         fail()
+        finishTreeLoad(key, false)
+      }
+    }
+
+    function finishTreeLoad(key, succeeded) {
+      const state = treeLoadStates.get(key)
+      if (state) {
+        treeLoadStates.delete(key)
+        state.resolve(succeeded)
+      }
+    }
+
+    function waitForTreeNodeLoad(key) {
+      if (loadedTreeNodes.has(key)) {
+        treeRef.value.setExpanded(key, true)
+        return Promise.resolve(true)
+      }
+
+      const existingState = treeLoadStates.get(key)
+      if (existingState) {
+        return existingState.promise
+      }
+
+      let resolveLoad
+      const promise = new Promise((resolve) => {
+        resolveLoad = resolve
+      })
+
+      treeLoadStates.set(key, {
+        promise,
+        resolve: resolveLoad,
+      })
+      treeRef.value.setExpanded(key, true)
+
+      return promise
+    }
+
+    async function loadTreeRoot(rootPath, revealId) {
+      if (treeRootPath === rootPath) return true
+
+      const listing = await walkFolders(rootPath)
+      if (treeRevealRequests.isLatest(revealId) !== true || listing.error !== void 0) {
+        return false
+      }
+
+      // Resolve any obsolete waits before replacing the node graph. Lazy-load
+      // callbacks from the old root may still finish, but no longer affect the
+      // visible tree.
+      for (const state of treeLoadStates.values()) {
+        state.resolve(false)
+      }
+      treeLoadStates.clear()
+      loadedTreeNodes.clear()
+      treeNodeElements.clear()
+      selectedKey.value = null
+      treeRootPath = rootPath
+      folderTree.splice(0, folderTree.length, ...getSideFolders(listing.entries))
+      await nextTick()
+
+      return true
+    }
+
+    async function revealTreePath(absolutePath) {
+      const revealId = treeRevealRequests.begin()
+      const rootPath = getFileSystemRoot(absolutePath, pathSeparator.value, platform.value)
+
+      if ((await loadTreeRoot(rootPath, revealId)) !== true || !treeRef.value) {
+        return
+      }
+
+      const pathKeys = getTreePathKeys(absolutePath, rootPath, pathSeparator.value)
+
+      // Expand one level at a time. Each lazy-load completion makes the next
+      // path segment available through QTree's public getNodeByKey() API.
+      for (const key of pathKeys) {
+        if (
+          treeRevealRequests.isLatest(revealId) !== true ||
+          treeRef.value.getNodeByKey(key) === void 0 ||
+          (await waitForTreeNodeLoad(key)) !== true
+        ) {
+          return
+        }
+      }
+
+      if (
+        treeRevealRequests.isLatest(revealId) !== true ||
+        treeRef.value.getNodeByKey(absolutePath) === void 0
+      ) {
+        return
+      }
+
+      selectedKey.value = absolutePath
+      await nextTick()
+      treeNodeElements.get(absolutePath)?.scrollIntoView({
+        block: 'nearest',
+        inline: 'nearest',
+      })
+    }
+
+    function setTreeNodeElement(key, element) {
+      if (element) {
+        treeNodeElements.set(key, element)
+      } else {
+        treeNodeElements.delete(key)
       }
     }
 
     async function onShortcut({ path }) {
       await onSelectedFolder(path)
+    }
+
+    function isShortcutSelected(path) {
+      return areFileSystemPathsEqual(selectedFolder.value, path, platform.value)
     }
 
     async function onDblClicked(node) {
@@ -261,6 +396,10 @@ export default defineComponent({
       store.viewType = 'nodes'
 
       if (platform.value === 'win32') {
+        if (selectedFolder.value.charAt(1) === ':') {
+          selectedFolder.value =
+            selectedFolder.value.charAt(0).toUpperCase() + selectedFolder.value.slice(1)
+        }
         if (selectedFolder.value.charAt(absolutePath.length - 1) === ':') {
           selectedFolder.value += pathSeparator.value
         }
@@ -277,18 +416,10 @@ export default defineComponent({
       const targetPath = selectedFolder.value
       await loadSelectedFolder(targetPath)
 
-      // The directory request itself is guarded, and this companion check keeps
-      // an older request from moving QTree selection after newer navigation.
+      // The directory request itself is guarded; tree revealing has a separate
+      // guard because it may require several lazy IPC reads.
       if (selectedFolder.value === targetPath) {
-        await syncTreeSelection(targetPath)
-      }
-    }
-
-    async function syncTreeSelection(absolutePath) {
-      await nextTick()
-
-      if (treeRef.value?.getNodeByKey(absolutePath)) {
-        selectedKey.value = absolutePath
+        await revealTreePath(targetPath)
       }
     }
 
@@ -321,9 +452,12 @@ export default defineComponent({
       platform,
       currentDrive,
       drives,
+      onDriveSelected,
       selectedKey,
+      setTreeNodeElement,
       onLazyLoad,
       onShortcut,
+      isShortcutSelected,
       onDblClicked,
       onSelectedFolder,
       toggleListType,
