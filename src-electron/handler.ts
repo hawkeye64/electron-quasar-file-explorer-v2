@@ -48,6 +48,14 @@ function handle(
 // Every channel registered here is exposed through electron-preload.ts. Keeping
 // filesystem work in the main process lets the renderer stay sandbox-friendly.
 export function useHandler({ newWindow }: FileExplorerActions) {
+  handle('myShell:appInfo', () => {
+    return {
+      // Electron owns its runtime metadata. Return it through the narrow bridge
+      // instead of exposing process or other Node globals to the Vue renderer.
+      electronVersion: process.versions.electron,
+    }
+  })
+
   handle('myShell:newWindow', async () => {
     await newWindow()
   })

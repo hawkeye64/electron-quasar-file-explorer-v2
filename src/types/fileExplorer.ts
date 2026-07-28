@@ -37,6 +37,10 @@ export interface FileExplorerEnvironment {
   platform: NodeJS.Platform
 }
 
+export interface FileExplorerAppInfo {
+  electronVersion: string
+}
+
 export interface ShortcutFolders {
   home: string
   desktop: string
@@ -48,6 +52,7 @@ export interface ShortcutFolders {
 }
 
 export interface FileExplorerShell {
+  appInfo: () => Promise<FileExplorerAppInfo>
   newWindow: () => Promise<void>
   openFile: (path: string) => Promise<string>
   walkFolders: (path: string) => Promise<DirectoryListing>

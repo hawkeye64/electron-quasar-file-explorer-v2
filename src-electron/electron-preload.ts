@@ -11,6 +11,7 @@ contextBridge.exposeInMainWorld('quasarRuntime', quasarRuntime)
 // powerful Electron/Node objects directly. `satisfies` keeps this bridge in
 // sync with the renderer declaration without adding runtime code.
 const fileExplorerShell = {
+  appInfo: () => ipcRenderer.invoke('myShell:appInfo'),
   newWindow: () => ipcRenderer.invoke('myShell:newWindow'),
   openFile: (filePath: string) => ipcRenderer.invoke('myShell:openFile', filePath),
   walkFolders: (folderPath: string) => ipcRenderer.invoke('myShell:walkFolders', folderPath),

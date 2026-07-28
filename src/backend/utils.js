@@ -58,6 +58,10 @@ export async function walkFolders(path) {
   return await myShell.walkFolders(path)
 }
 
+export async function getAppInfo() {
+  return await myShell.appInfo()
+}
+
 export async function openNewWindow() {
   await myShell.newWindow()
 }

@@ -134,22 +134,53 @@
 
   <q-dialog v-model="aboutDialogOpen">
     <q-card class="about-dialog">
-      <q-card-section>
-        <div class="text-h6">File Explorer</div>
-        <p class="q-mb-none">
-          A cross-platform example of secure filesystem browsing with Quasar and Electron.
-        </p>
+      <q-card-section class="about-dialog__header">
+        <img :src="fileExplorerIcon" width="72" height="72" alt="" class="about-dialog__icon" />
+
+        <div>
+          <div class="text-h5 text-weight-medium">File Explorer</div>
+          <div class="text-subtitle2 text-grey-7">Version {{ appVersion }}</div>
+        </div>
       </q-card-section>
 
+      <q-separator />
+
+      <q-card-section>
+        <p class="q-mt-none">
+          A cross-platform teaching example for secure filesystem browsing with Quasar and Electron.
+        </p>
+        <p class="text-body2 text-grey-8">
+          Filesystem access stays in Electron’s main process and crosses a narrow, sandboxed preload
+          bridge.
+        </p>
+
+        <dl class="about-dialog__versions q-mb-none">
+          <div>
+            <dt>Quasar</dt>
+            <dd>v{{ quasarVersion }}</dd>
+          </div>
+          <div>
+            <dt>Electron</dt>
+            <dd>v{{ appInfo.electronVersion }}</dd>
+          </div>
+        </dl>
+      </q-card-section>
+
+      <q-separator />
+
       <q-card-actions align="right">
-        <q-btn v-close-popup flat color="primary" label="Close" />
+        <q-btn v-close-popup autofocus unelevated color="primary" label="Close" />
       </q-card-actions>
     </q-card>
   </q-dialog>
 </template>
 
 <script>
-import { defineComponent, ref } from 'vue'
+import { defineComponent, onBeforeMount, reactive, ref } from 'vue'
+import quasarPackage from 'quasar/package.json'
+import appPackage from '../../package.json'
+import fileExplorerIcon from '../assets/file-explorer-icon.svg'
+import { getAppInfo } from '../backend/utils.js'
 import { isAbsoluteFileSystemPath, normalizeEnteredFileSystemPath } from '../utils/fileExplorer.js'
 
 export default defineComponent({
@@ -183,7 +214,19 @@ export default defineComponent({
   setup(props, { emit, expose }) {
     const locationDialogOpen = ref(false),
       locationInput = ref(''),
-      aboutDialogOpen = ref(false)
+      aboutDialogOpen = ref(false),
+      appInfo = reactive({
+        electronVersion: '—',
+      })
+
+    onBeforeMount(async () => {
+      try {
+        Object.assign(appInfo, await getAppInfo())
+      } catch {
+        // About information is useful but must never prevent the explorer from
+        // starting if the runtime metadata IPC call unexpectedly fails.
+      }
+    })
 
     // macOS applications use Command where Windows and Linux applications use
     // Control. Keeping labels platform-aware makes the in-app menu honest even
@@ -210,6 +253,10 @@ export default defineComponent({
       locationDialogOpen,
       locationInput,
       aboutDialogOpen,
+      appInfo,
+      appVersion: appPackage.version,
+      quasarVersion: quasarPackage.version,
+      fileExplorerIcon,
       primaryShortcut,
       openLocationDialog,
       submitLocation,
@@ -239,6 +286,46 @@ export default defineComponent({
 }
 
 .about-dialog {
-  width: min(380px, calc(100vw - 32px));
+  width: min(460px, calc(100vw - 32px));
+  border-radius: 12px;
+}
+
+.about-dialog__header {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding-block: 24px;
+}
+
+.about-dialog__icon {
+  flex: none;
+  filter: drop-shadow(0 4px 8px rgb(0 0 0 / 18%));
+}
+
+.about-dialog__versions {
+  overflow: hidden;
+  border: 1px solid $grey-4;
+  border-radius: 8px;
+}
+
+.about-dialog__versions > div {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 24px;
+  padding: 10px 12px;
+}
+
+.about-dialog__versions > div + div {
+  border-top: 1px solid $grey-4;
+}
+
+.about-dialog__versions dt {
+  font-weight: 500;
+}
+
+.about-dialog__versions dd {
+  margin: 0;
+  color: $grey-7;
+  font-variant-numeric: tabular-nums;
 }
 </style>
