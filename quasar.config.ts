@@ -26,7 +26,6 @@ function bundleElectronDepsForDev(cfg: ElectronBuildConfig, dev: boolean) {
 export default function (ctx: QuasarConfigContext) {
   return {
     boot: [],
-    css: ['app.sass'],
 
     extras: ['roboto-font', 'material-icons'],
 
@@ -88,6 +87,7 @@ export default function (ctx: QuasarConfigContext) {
         productName: 'File Explorer',
         linux: {
           category: 'Utility',
+          syncDesktopName: true,
           target: 'AppImage',
         },
         mac: {

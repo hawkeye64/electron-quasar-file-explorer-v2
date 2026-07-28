@@ -6,10 +6,9 @@
           <grid-item
             :node="node"
             :selected-node="selectedNode"
-            :view-type="viewType"
             class="non-selectable"
             @click="onClick"
-            @dblClick="onDblClick"
+            @dblclick="onDblClick"
           />
         </template>
       </div>
@@ -60,7 +59,6 @@
 <script>
 import { defineComponent, ref, reactive } from 'vue'
 import { date } from 'quasar'
-import { useExplorerStore } from '../store/explorerStore.js'
 import prettyBytes from 'pretty-bytes'
 import GridItem from '../components/GridItem.vue'
 import GridItemImage from '../components/GridItemImage.vue'
@@ -80,16 +78,12 @@ export default defineComponent({
     listType: {
       type: String,
     },
-    viewType: {
-      type: String,
-    },
   },
 
-  emits: ['click', 'dblClick'],
+  emits: ['dblclick'],
 
   setup(props, { emit }) {
-    const store = useExplorerStore(),
-      selectedNode = ref(null),
+    const selectedNode = ref(null),
       imageWidth = 25,
       columns = reactive([
         {
@@ -143,13 +137,12 @@ export default defineComponent({
     // when a node is single-clicked
     function onClick(node) {
       selectedNode.value = node
-      emit('click', node)
     }
 
     // when a node is double-clicked
     function onDblClick(node) {
       selectedNode.value = node
-      emit('dblClick', node)
+      emit('dblclick', node)
     }
 
     function rowClick(node) {
@@ -188,12 +181,7 @@ export default defineComponent({
       }
     }
 
-    function getIcon(node) {
-      return 'menu'
-    }
-
     return {
-      store,
       selectedNode,
       imageWidth,
       columns,
@@ -205,89 +193,45 @@ export default defineComponent({
       getSize,
       getModified,
       selectedStyleObject,
-      getIcon,
     }
   },
 })
 </script>
 
-<style lang="sass" scoped>
-.contents-container
-  position: relative
-  top: 0
-  left: 0
-  width: 100%
-  height: calc(100vh - 50px)
-  overflow: auto
+<style lang="scss" scoped>
+.contents-container {
+  position: relative;
+  width: 100%;
+  height: calc(100vh - 50px);
+  overflow: auto;
+}
 
-.contents-wrapper
-  position: relative
-  width: 100%
-  height: calc(100vh - 50px)
+.contents-wrapper {
+  position: relative;
+  width: 100%;
+  height: calc(100vh - 50px);
+}
 
-.my-sticky-header-table
-  /* height or max-height is important */
-  height: calc(100vh - 50px)
+.my-sticky-header-table {
+  height: calc(100vh - 50px);
 
   .q-table__top,
   .q-table__bottom,
-  thead tr:first-child th
-    /* bg color is important for th; just specify one */
-    background-color: #c1f4cd
+  thead tr:first-child th {
+    background-color: #c1f4cd;
+  }
 
-  thead tr th
-    position: sticky
-    z-index: 1
-  thead tr:first-child th
-    top: 0
+  thead tr th {
+    position: sticky;
+    z-index: 1;
+  }
 
-  /* this is when the loading indicator appears */
-  &.q-table--loading thead tr:last-child th
-    /* height of all previous header rows */
-    top: 48px
+  thead tr:first-child th {
+    top: 0;
+  }
 
-// #content .q-table-container
-//     border-radius: 0 !important
-//     -webkit-box-shadow: inherit !important
-//     box-shadow: inherit !important
-//     position: relative
-//     min-height: 100vh
-
-// #content-scroll >>> #content .q-table-container
-//   box-shadow: none
-
-// #content-scroll >>> #content .q-table-middle.scroll
-//   overflow: auto
-
-// #content-scroll >>> #content thead tr th
-//   position: sticky
-//   position: -webkit-sticky
-//   background: lightgrey
-//   top: 0px
-//   z-index: 1
-
-// #content-scroll >>> #content .q-table table
-//   display: block
-//   width: 100%
-//   min-width: 100%
-
-// #content-scroll >>> #content .q-table thead,
-// #content-scroll >>> #content .q-table tr,
-// #content-scroll >>> #content .q-table th,
-// #content-scroll >>> #content .q-table td
-//   height: 24px !important
-
-// #content-scroll >>> #content .q-table thead,
-// #content-scroll >>> #content .q-table tr
-//   width: 100% !important
-//   display: inline-table !important
-
-// #content-scroll >>> #content .q-table tbody
-//   display: block
-//   position: relative
-//   overflow: auto
-//   width: 100%
-//   min-width: 100%
-//   min-height: 200px
-//   max-height: calc(100vh - 80px)
+  &.q-table--loading thead tr:last-child th {
+    top: 48px;
+  }
+}
 </style>

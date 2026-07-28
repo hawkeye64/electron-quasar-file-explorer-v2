@@ -8,30 +8,6 @@
 // myShell is injected by src-electron/electron-preload.js.
 
 /**
- * Gets a watch on a path or an array of paths (this is debounced)
- *
- * @param {string|array} path Example: '/path/to/something' or ['/path/a', '/path/b']
- * @param {boolean} [recursive=true] If the watch should be recursive
- * @callback callback Returns '{ type, payload }'
- * @returns stopWatching function - when called stops watching the path
- */
-export async function pathWatch(_path, _recursive = true, _callback) {
-  // TBD
-}
-
-/**
- * Gets a watch on a path or an array of paths (this is immediate)
- *
- * @param {string|array} path Example: '/path/to/something' or ['/path/a', '/path/b']
- * @param {boolean} [recursive=false] If the watch should be recursive
- * @callback callback Returns { path, operation, cookie }
- * @returns stopWatching function - when called stops watching the path
- */
-export async function pathWatchImmediate(_path, _recursive = false, _callback) {
-  // TBD
-}
-
-/**
  * Function that lists all files in a folder recursively
  * in a synchronous fashion
  *
@@ -76,31 +52,30 @@ export async function readFile(path) {
   return await myShell.readFile(path)
 }
 
-export async function getImageFile(path) {
-  return new Promise((resolve) => {
-    myShell.readFile(path).then((buffer) => {
-      // Local image thumbnails are passed to <img> as data URLs so the
-      // renderer does not need direct file:// access.
-      arrayBufferToBase64(new Uint8Array(buffer), (base64) => {
-        const image = 'data:image/png;base64,' + base64
-        return resolve(image)
-      })
-    })
-  })
+export async function getImageFile(path, mimeType) {
+  const buffer = await myShell.readFile(path)
+  return await arrayBufferToDataUrl(buffer, mimeType)
 }
 
-export function arrayBufferToBase64(buffer, callback) {
-  // FileReader is available in the renderer and avoids pulling in another
-  // dependency just to encode thumbnail bytes.
-  const blob = new Blob([buffer], {
-    type: 'application/octet-binary',
+function arrayBufferToDataUrl(buffer, mimeType) {
+  return new Promise((resolve, reject) => {
+    const blob = new Blob([buffer], {
+      type: mimeType || 'application/octet-stream',
+    })
+    const reader = new FileReader()
+
+    reader.onload = () => {
+      if (typeof reader.result === 'string') {
+        resolve(reader.result)
+      } else {
+        reject(new Error('Failed to encode the image thumbnail'))
+      }
+    }
+    reader.onerror = () => {
+      reject(reader.error || new Error('Failed to read the image thumbnail'))
+    }
+    reader.readAsDataURL(blob)
   })
-  const reader = new FileReader()
-  reader.onload = function (evt) {
-    const dataurl = evt.target.result
-    callback(dataurl.substr(dataurl.indexOf(',') + 1))
-  }
-  reader.readAsDataURL(blob)
 }
 
 export async function getMimeType(path) {

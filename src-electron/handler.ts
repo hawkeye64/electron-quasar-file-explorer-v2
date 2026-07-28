@@ -1,5 +1,6 @@
 import { app, ipcMain, shell } from 'electron'
-import { access, readFileSync } from 'node:fs'
+import { access } from 'node:fs'
+import { readFile } from 'node:fs/promises'
 import os from 'node:os'
 import path from 'node:path'
 import mime from 'mime'
@@ -76,7 +77,7 @@ export function useHandler() {
 
   ipcMain.handle('myShell:readFile', async (_event, requestedPath: string) => {
     // Used by the renderer to create image thumbnails from local files.
-    return readFileSync(requestedPath)
+    return await readFile(requestedPath)
   })
 
   ipcMain.handle('myShell:getMimeType', async (_event, requestedPath: string) => {

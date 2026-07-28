@@ -1,7 +1,7 @@
 <template>
   <div class="square" :style="gridItemImageContainerStyleObject">
     <span class="img-helper" />
-    <img :src="image" :style="gridItemImageStyleObject" />
+    <img :src="image" :style="gridItemImageStyleObject" alt="" />
   </div>
 </template>
 
@@ -75,7 +75,7 @@ export default defineComponent({
           }
           try {
             // return a thumbnail image
-            return await getImageFile(props.node.path)
+            return await getImageFile(props.node.path, props.node.mimetype)
           } catch (err) {
             return basePath + 'image.png'
           }
@@ -99,12 +99,14 @@ export default defineComponent({
 })
 </script>
 
-<style lang="sass">
-.square
-  text-align: center
+<style lang="scss">
+.square {
+  text-align: center;
+}
 
-.img-helper
-  display: inline-block
-  height: 100%
-  vertical-align: middle
+.img-helper {
+  display: inline-block;
+  height: 100%;
+  vertical-align: middle;
+}
 </style>

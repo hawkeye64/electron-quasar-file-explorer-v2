@@ -47,5 +47,6 @@
     "pnpm": ">=11.5.0"
   },
   "packageManager": "pnpm@11.13.0",
+  "desktopName": "electron-quasar-file-explorer-v2",
   "productName": "File Explorer"
 }

@@ -15,7 +15,7 @@
 </template>
 
 <script>
-import { defineComponent, computed, watch } from 'vue'
+import { computed, defineComponent, onBeforeUnmount } from 'vue'
 import GridItemImage from './GridItemImage.vue'
 
 export default defineComponent({
@@ -32,17 +32,16 @@ export default defineComponent({
     selectedNode: {
       type: Object,
     },
-    viewType: {
-      type: String,
-    },
   },
-  emits: ['click', 'dblClick'],
+  emits: ['click', 'dblclick'],
 
   setup(props, { emit }) {
     const width = 75,
       fontSize = 12,
       delay = 200
     let timer = null
+
+    onBeforeUnmount(clearClickTimer)
 
     const gridItemContainerStyleObject = computed(() => {
       if (props.node === props.selectedNode) {
@@ -72,15 +71,12 @@ export default defineComponent({
       }
     })
 
-    watch(
-      () => props.viewType,
-      (val) => {
-        if (props.viewType === 'nodes' && props.node === props.selectedNode) {
-          // TODO: Jeff
-          // this.$el.scrollIntoView()
-        }
-      },
-    )
+    function clearClickTimer() {
+      if (timer !== null) {
+        clearTimeout(timer)
+        timer = null
+      }
+    }
 
     function onClick() {
       // Browsers emit two click events before a dblclick. A short timer lets the
@@ -92,18 +88,13 @@ export default defineComponent({
       emit('click', props.node)
 
       timer = setTimeout(() => {
-        clearTimeout(timer)
+        timer = null
       }, delay)
     }
 
     function onDblClick() {
-      if (timer) {
-        clearTimeout(timer)
-      }
-      // Vue event names are case-sensitive in JavaScript; keep the emitted name
-      // aligned with the parent listener used by this demo.
-      // eslint-disable-next-line vue/custom-event-name-casing
-      emit('dblClick', props.node)
+      clearClickTimer()
+      emit('dblclick', props.node)
     }
 
     return {
@@ -119,9 +110,6 @@ export default defineComponent({
 </script>
 
 <style scoped>
-.selected {
-  background-color: '#C0C0C0';
-}
 .griditemcontainer {
   margin: 5px;
   height: 135px;
@@ -129,8 +117,7 @@ export default defineComponent({
   display: flex;
   flex-direction: column;
   align-items: center;
-  -webkit-transition: 'all 0.5s ease-in-out';
-  transition: 'all 0.5s ease-in-out';
+  transition: all 0.5s ease-in-out;
 }
 .griditemcontainer:hover {
   background-color: rgba(0, 0, 0, 0.05);
@@ -138,8 +125,7 @@ export default defineComponent({
     0 1px 5px rgba(0, 0, 0, 0.2),
     0 2px 2px rgba(0, 0, 0, 0.14),
     0 3px 1px -2px rgba(0, 0, 0, 0.12);
-  -webkit-transition: 'all 0.5s ease-in-out';
-  transition: 'all 0.5s ease-in-out';
+  transition: all 0.5s ease-in-out;
 }
 .griditemimage {
   display: flex;
@@ -147,7 +133,6 @@ export default defineComponent({
   justify-content: center;
 }
 .griditemimage:hover {
-  -webkit-filter: brightness(108%);
   filter: brightness(108%);
 }
 .griditemtext {

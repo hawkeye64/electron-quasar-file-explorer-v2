@@ -66,9 +66,7 @@
           v-show="store.viewType === 'nodes'"
           :contents="store.files"
           :list-type="store.listType"
-          :view-type="store.viewType"
-          @click="onClicked"
-          @dblClick="onDblClicked"
+          @dblclick="onDblClicked"
         />
       </q-page>
     </q-page-container>
@@ -108,7 +106,7 @@ export default defineComponent({
       store = useExplorerStore(),
       selectedFolder = ref(''),
       currentDrive = ref(),
-      selectedKey = reactive([]),
+      selectedKey = ref(null),
       lazyLoading = ref(false),
       drives = reactive([])
     let pathSep = '',
@@ -182,9 +180,14 @@ export default defineComponent({
 
     // Windows has multiple filesystem roots, so switching drives resets the
     // side tree and content pane to the selected drive root.
-    watch(currentDrive, async () => {
-      selectedFolder.value = currentDrive.value + pathSep
-      const folders = await adjustFolders(await walkFolders(selectedFolder.value))
+    watch(currentDrive, async (drive) => {
+      if (!drive) return
+
+      const driveRoot = drive + pathSep
+      if (selectedFolder.value === driveRoot) return
+
+      selectedFolder.value = driveRoot
+      const folders = await adjustFolders(await walkFolders(driveRoot))
       folderTree.splice(0, folderTree.length, ...folders)
     })
 
@@ -193,7 +196,7 @@ export default defineComponent({
       folders.sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }))
     }
 
-    async function filterContents(folders, sort = true) {
+    async function filterContents(folders) {
       // The content pane shows files and folders. MIME lookup happens through
       // main-process IPC because it depends on local file paths.
       const filteredContent = await Promise.all(
@@ -218,17 +221,16 @@ export default defineComponent({
       return filteredContent
     }
 
-    async function filterSideFolders(folders, sort = true) {
+    async function filterSideFolders(folders) {
       // The left QTree only needs directories. Each directory is marked lazy so
       // child folders are scanned only when a user expands that node.
       const filteredFolders = await Promise.all(
         folders
           .filter((folder) => folder.children !== undefined)
           .map(async (folder) => {
-            const absolutePath = folder.path + pathSep + folder.name
             folder.lazy = !!folder.children
             folder.tickable = true
-            folder.mimetype = await getMimeType(absolutePath)
+            folder.mimetype = await getMimeType(folder.path)
             return folder
           }),
       )
@@ -239,7 +241,7 @@ export default defineComponent({
     async function adjustFolders(folders) {
       // One filesystem scan feeds two views: visible contents and tree branches.
       await filterContents(folders)
-      return await filterSideFolders(folders, false)
+      return await filterSideFolders(folders)
     }
 
     async function onLazyLoad({ node, key, done, fail }) {
@@ -251,28 +253,16 @@ export default defineComponent({
         done(folders)
       } catch (error) {
         console.error('Failed to fetch folders:', error)
-        // fail()
-        done([])
+        fail()
+      } finally {
+        lazyLoading.value = false
       }
-      lazyLoading.value = false
     }
 
     async function onShortcut({ name, path }) {
       setSelectedFolder(path)
       await filterContents(await walkFolders(path))
       expandTree(path)
-    }
-
-    watch(selectedFolder, (absolutePath) => {
-      if (selectedFolder.value !== absolutePath) {
-        onSelectedFolder(absolutePath)
-      }
-    })
-
-    function onClicked(node) {
-      // on single-clicks we don't do anything here
-      // if we wanted to drill-down into folders, we
-      // can call onDblClicked function.
     }
 
     async function onDblClicked(node) {
@@ -388,7 +378,6 @@ export default defineComponent({
       selectedKey,
       onLazyLoad,
       onShortcut,
-      onClicked,
       onDblClicked,
       onSelectedFolder,
       toggleListType,
