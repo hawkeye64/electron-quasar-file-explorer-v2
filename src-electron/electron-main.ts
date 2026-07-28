@@ -84,7 +84,7 @@ void app.whenReady().then(async () => {
   await registerQuasarRuntime()
 
   // Register IPC channels before the renderer has a chance to call them.
-  useHandler()
+  useHandler({ newWindow: createWindow })
 
   await createWindow()
 

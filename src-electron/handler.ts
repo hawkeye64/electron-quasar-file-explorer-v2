@@ -9,6 +9,10 @@ import windowsDrives from './getWindowsDrives'
 
 const trustedRendererIds = new Set<number>()
 
+interface FileExplorerActions {
+  newWindow: () => Promise<void>
+}
+
 // Register each BrowserWindow we create and forget it when destroyed. Checking
 // this identity on every IPC call means an unexpected window or webview cannot
 // reuse the preload channel merely because it knows a channel name.
@@ -43,7 +47,11 @@ function handle(
 
 // Every channel registered here is exposed through electron-preload.ts. Keeping
 // filesystem work in the main process lets the renderer stay sandbox-friendly.
-export function useHandler() {
+export function useHandler({ newWindow }: FileExplorerActions) {
+  handle('myShell:newWindow', async () => {
+    await newWindow()
+  })
+
   handle('myShell:walkFolders', async (_event, requestedPath) => {
     return await walkFolders(validateAbsolutePath(requestedPath))
   })

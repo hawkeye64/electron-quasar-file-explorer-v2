@@ -38,11 +38,15 @@ export default defineComponent({
     selectedNode: {
       type: Object,
     },
+    size: {
+      type: Number,
+      required: true,
+    },
   },
   emits: ['click', 'dblclick'],
 
   setup(props, { emit }) {
-    const width = 75,
+    const width = computed(() => props.size),
       fontSize = 12,
       delay = 200
     let timer = null
@@ -54,20 +58,22 @@ export default defineComponent({
         // current node is selected
         return {
           backgroundColor: '#C0C0C0',
-          width: width + 'px',
+          width: width.value + 'px',
+          height: width.value + 60 + 'px',
         }
       } else {
         return {
           backgroundColor: 'inherit',
-          width: width + 'px',
+          width: width.value + 'px',
+          height: width.value + 60 + 'px',
         }
       }
     })
 
     const gridItemImageStyleObject = computed(() => {
       return {
-        width: width + 'px',
-        height: width + 'px',
+        width: width.value + 'px',
+        height: width.value + 'px',
       }
     })
 
@@ -118,7 +124,6 @@ export default defineComponent({
 <style scoped>
 .griditemcontainer {
   margin: 5px;
-  height: 135px;
   border-radius: 4px;
   display: flex;
   flex-direction: column;

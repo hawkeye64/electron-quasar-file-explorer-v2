@@ -12,6 +12,8 @@ export function provideExplorerStore() {
     files: [],
     viewType: 'nodes',
     listType: 'grid',
+    gridIconSize: 75,
+    showHiddenFiles: false,
     loading: false,
     error: '',
     warningCount: 0,

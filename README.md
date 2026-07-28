@@ -97,6 +97,10 @@ Items that have been added since the last tutorial:
 - File size and modification-time metadata
 - Startup in the current user's home directory on every supported OS
 - Location-aware shortcut highlighting, tree expansion, and scrolling
+- A compact application menu with new-window, view, icon-size, refresh, path,
+  hidden-dotfile, parent-folder, and About actions
+- Platform-aware keyboard shortcuts that use Ctrl on Windows/Linux and Command
+  on macOS
 - Bounded image thumbnails
 - Explicit loading, empty-folder, partial-read, and error states
 
@@ -111,7 +115,7 @@ For example:
 - copy, paste, cut, delete
 - file info/properties
 - plug and play drives (ie: USBs)
-- refresh and filesystem change notifications
+- automatic filesystem change notifications
 - and others
 
 Feel free to PR if you would like to make it better for others.

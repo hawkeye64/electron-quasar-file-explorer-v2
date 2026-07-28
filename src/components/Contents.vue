@@ -19,6 +19,7 @@
           <grid-item
             :node="node"
             :selected-node="selectedNode"
+            :size="gridIconSize"
             class="non-selectable"
             @click="onClick"
             @dblclick="onDblClick"
@@ -105,6 +106,10 @@ export default defineComponent({
     },
     listType: {
       type: String,
+      required: true,
+    },
+    gridIconSize: {
+      type: Number,
       required: true,
     },
     loading: {

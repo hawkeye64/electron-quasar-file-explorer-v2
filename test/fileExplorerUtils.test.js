@@ -4,11 +4,16 @@ import test from 'node:test'
 import {
   areFileSystemPathsEqual,
   createLatestRequestGuard,
+  getExplorerKeyboardAction,
   getFileSystemRoot,
   getFileSystemErrorMessage,
+  getParentFileSystemPath,
   getShortcutLinks,
   getTreePathKeys,
+  isAbsoluteFileSystemPath,
+  isFileSystemEntryVisible,
   isValidTimestamp,
+  normalizeEnteredFileSystemPath,
 } from '../src/utils/fileExplorer.js'
 
 test('isValidTimestamp accepts finite timestamps including the Unix epoch', () => {
@@ -87,4 +92,54 @@ test('shortcut labels follow shared conventions and the macOS Movies name', () =
   )
   assert.equal(getShortcutLinks(folders, 'darwin').at(-1).name, 'Movies')
   assert.equal(getShortcutLinks(folders, 'darwin').at(-1).path, '/Users/Jeff/Movies')
+})
+
+test('absolute path validation follows POSIX, Windows drive, and UNC syntax', () => {
+  assert.equal(isAbsoluteFileSystemPath('/home/jeff', 'linux'), true)
+  assert.equal(isAbsoluteFileSystemPath('/Users/Jeff', 'darwin'), true)
+  assert.equal(isAbsoluteFileSystemPath('C:\\Users\\Jeff', 'win32'), true)
+  assert.equal(isAbsoluteFileSystemPath('\\\\server\\share\\folder', 'win32'), true)
+  assert.equal(isAbsoluteFileSystemPath('Documents', 'linux'), false)
+  assert.equal(isAbsoluteFileSystemPath('C:relative', 'win32'), false)
+  assert.equal(isAbsoluteFileSystemPath('/tmp/\0unsafe', 'linux'), false)
+})
+
+test('entered Windows paths use the native separator expected by the tree', () => {
+  assert.equal(
+    normalizeEnteredFileSystemPath('  C:/Users/Jeff/Documents  ', 'win32'),
+    'C:\\Users\\Jeff\\Documents',
+  )
+  assert.equal(
+    normalizeEnteredFileSystemPath(' /home/jeff/Documents ', 'linux'),
+    '/home/jeff/Documents',
+  )
+})
+
+test('hidden entry filtering uses the portable leading-dot convention', () => {
+  assert.equal(isFileSystemEntryVisible({ name: '.git' }, false), false)
+  assert.equal(isFileSystemEntryVisible({ name: '.git' }, true), true)
+  assert.equal(isFileSystemEntryVisible({ name: 'Documents' }, false), true)
+})
+
+test('parent path navigation stops at POSIX, drive, and UNC roots', () => {
+  assert.equal(getParentFileSystemPath('/home/jeff', '/', 'linux'), '/home')
+  assert.equal(getParentFileSystemPath('/home', '/', 'linux'), '/')
+  assert.equal(getParentFileSystemPath('/', '/', 'linux'), '/')
+  assert.equal(getParentFileSystemPath('C:\\Users\\Jeff', '\\', 'win32'), 'C:\\Users')
+  assert.equal(getParentFileSystemPath('C:\\Users', '\\', 'win32'), 'C:\\')
+  assert.equal(
+    getParentFileSystemPath('\\\\server\\share\\folder', '\\', 'win32'),
+    '\\\\server\\share\\',
+  )
+})
+
+test('keyboard actions use Control on Windows/Linux and Command on macOS', () => {
+  assert.equal(getExplorerKeyboardAction({ key: 'h', ctrlKey: true }, 'linux'), 'toggleHiddenFiles')
+  assert.equal(getExplorerKeyboardAction({ key: 'o', ctrlKey: true }, 'win32'), 'openLocation')
+  assert.equal(getExplorerKeyboardAction({ key: 'n', metaKey: true }, 'darwin'), 'newWindow')
+  assert.equal(getExplorerKeyboardAction({ key: 'r', ctrlKey: true }, 'darwin'), null)
+  assert.equal(getExplorerKeyboardAction({ key: 'F5' }, 'linux'), 'refresh')
+  assert.equal(getExplorerKeyboardAction({ key: 'ArrowUp', altKey: true }, 'linux'), 'parentFolder')
+  assert.equal(getExplorerKeyboardAction({ key: '1', ctrlKey: true }, 'linux'), 'gridView')
+  assert.equal(getExplorerKeyboardAction({ key: '+', metaKey: true }, 'darwin'), 'increaseIconSize')
 })

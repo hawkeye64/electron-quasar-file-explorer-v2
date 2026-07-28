@@ -101,3 +101,86 @@ export function getShortcutLinks(shortcuts, platform) {
     },
   ]
 }
+
+export function isAbsoluteFileSystemPath(value, platform) {
+  if (typeof value !== 'string' || value.length === 0 || value.includes('\0')) {
+    return false
+  }
+
+  if (platform === 'win32') {
+    return /^[a-z]:[\\/]/i.test(value) || /^\\\\[^\\]+\\[^\\]+/.test(value)
+  }
+
+  return value.startsWith('/')
+}
+
+export function normalizeEnteredFileSystemPath(value, platform) {
+  const trimmedPath = value.trim()
+
+  // Windows APIs accept forward slashes, but the renderer's breadcrumbs and
+  // lazy tree use the native separator supplied by Electron. Normalize only
+  // user-entered paths so every downstream path operation sees one form.
+  return platform === 'win32' ? trimmedPath.replaceAll('/', '\\') : trimmedPath
+}
+
+// Leading-dot entries are the portable hidden-file convention available from
+// Node's cross-platform directory APIs. Native Windows Hidden attributes are a
+// separate platform metadata feature and are intentionally not guessed here.
+export function isFileSystemEntryVisible(entry, showHiddenFiles) {
+  return showHiddenFiles === true || entry.name.startsWith('.') !== true
+}
+
+export function getParentFileSystemPath(absolutePath, pathSeparator, platform) {
+  const rootPath = getFileSystemRoot(absolutePath, pathSeparator, platform)
+  if (absolutePath === rootPath) {
+    return rootPath
+  }
+
+  const pathWithoutTrailingSeparators = absolutePath.replace(/[\\/]+$/, '')
+  const separatorIndex = pathWithoutTrailingSeparators.lastIndexOf(pathSeparator)
+
+  return separatorIndex < rootPath.length
+    ? rootPath
+    : pathWithoutTrailingSeparators.slice(0, separatorIndex) || rootPath
+}
+
+export function getExplorerKeyboardAction(event, platform) {
+  const key = event.key.toLowerCase()
+  const usesPrimaryModifier =
+    platform === 'darwin'
+      ? event.metaKey === true && event.ctrlKey !== true
+      : event.ctrlKey === true && event.metaKey !== true
+
+  if (usesPrimaryModifier && event.altKey !== true) {
+    return (
+      {
+        n: 'newWindow',
+        h: 'toggleHiddenFiles',
+        o: 'openLocation',
+        r: 'refresh',
+        1: 'gridView',
+        2: 'listView',
+        '+': 'increaseIconSize',
+        '=': 'increaseIconSize',
+        '-': 'decreaseIconSize',
+        _: 'decreaseIconSize',
+      }[key] ?? null
+    )
+  }
+
+  if (key === 'f5' && event.ctrlKey !== true && event.metaKey !== true && event.altKey !== true) {
+    return 'refresh'
+  }
+
+  if (
+    key === 'arrowup' &&
+    event.altKey === true &&
+    event.ctrlKey !== true &&
+    event.metaKey !== true &&
+    event.shiftKey !== true
+  ) {
+    return 'parentFolder'
+  }
+
+  return null
+}

@@ -48,6 +48,7 @@ export interface ShortcutFolders {
 }
 
 export interface FileExplorerShell {
+  newWindow: () => Promise<void>
   openFile: (path: string) => Promise<string>
   walkFolders: (path: string) => Promise<DirectoryListing>
   windowsDrives: () => Promise<string[]>

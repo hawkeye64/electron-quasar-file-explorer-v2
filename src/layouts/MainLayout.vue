@@ -15,69 +15,101 @@
           flat
           dense
           round
-          :icon="store.listType === 'grid' ? 'format_list_bulleted' : 'border_all'"
+          :icon="store.listType === 'grid' ? 'view_list' : 'grid_view'"
           :disable="store.viewType !== 'nodes'"
-          aria-label="toggle between grid and list modes"
+          :aria-label="store.listType === 'grid' ? 'Switch to list view' : 'Switch to grid view'"
           @click="toggleListType"
+        />
+
+        <explorer-menu
+          ref="menuRef"
+          :platform="platform"
+          :current-path="selectedFolder"
+          :show-hidden-files="store.showHiddenFiles"
+          :can-decrease-icon-size="canDecreaseIconSize"
+          :can-increase-icon-size="canIncreaseIconSize"
+          @new-window="createNewWindow"
+          @decrease-icon-size="changeIconSize(-1)"
+          @increase-icon-size="changeIconSize(1)"
+          @set-view="setContentView"
+          @toggle-hidden-files="toggleHiddenFiles"
+          @open-path="onSelectedFolder"
+          @parent="navigateToParentFolder"
+          @refresh="refreshSelectedFolder"
         />
       </q-toolbar>
     </q-header>
 
     <q-drawer v-model="leftDrawerOpen" show-if-above side="left" behavior="desktop" bordered>
-      <q-item-label header> Shortcuts </q-item-label>
+      <!--
+        The two navigation surfaces scroll independently. Expanding a deep tree
+        path must not push native-location shortcuts out of reach, and a short
+        window must still allow every shortcut to be reached.
+      -->
+      <div class="drawer-navigation column no-wrap">
+        <section class="drawer-pane drawer-pane--shortcuts column no-wrap">
+          <q-item-label id="shortcut-heading" header> Shortcuts </q-item-label>
 
-      <q-list dense>
-        <shortcut-link
-          v-for="shortcut in shortcutLinks"
-          :key="shortcut.name"
-          v-bind="shortcut"
-          :active="isShortcutSelected(shortcut.path)"
-          @shortcut="onShortcut"
-        />
-      </q-list>
+          <q-list dense class="drawer-pane__scroll" aria-labelledby="shortcut-heading">
+            <shortcut-link
+              v-for="shortcut in shortcutLinks"
+              :key="shortcut.name"
+              v-bind="shortcut"
+              :active="isShortcutSelected(shortcut.path)"
+              @shortcut="onShortcut"
+            />
+          </q-list>
+        </section>
 
-      <q-separator />
+        <q-separator />
 
-      <q-select
-        v-if="drives.length > 1"
-        v-model="currentDrive"
-        :options="drives"
-        label="Drives"
-        dense
-        class="q-mx-lg q-mb-md"
-        @update:model-value="onDriveSelected"
-      />
+        <section class="drawer-pane drawer-pane--filesystem column no-wrap">
+          <q-select
+            v-if="drives.length > 1"
+            v-model="currentDrive"
+            :options="drives"
+            label="Drives"
+            dense
+            class="q-mx-lg q-mb-md"
+            @update:model-value="onDriveSelected"
+          />
 
-      <q-separator v-if="drives.length > 1" />
+          <q-separator v-if="drives.length > 1" />
 
-      <q-item-label header> File System </q-item-label>
+          <q-item-label id="filesystem-heading" header> File System </q-item-label>
 
-      <q-tree
-        ref="treeRef"
-        v-model:selected="selectedKey"
-        label-key="name"
-        node-key="path"
-        :nodes="folderTree"
-        dense
-        accordion
-        style="width: 100%"
-        @lazy-load="onLazyLoad"
-        @update:selected="onSelectedFolder"
-      >
-        <template #default-header="{ node }">
-          <div :ref="(element) => setTreeNodeElement(node.path, element)">
-            {{ node.name }}
+          <div class="drawer-pane__scroll">
+            <q-tree
+              ref="treeRef"
+              v-model:selected="selectedKey"
+              label-key="name"
+              node-key="path"
+              :nodes="folderTree"
+              dense
+              accordion
+              style="width: 100%"
+              aria-labelledby="filesystem-heading"
+              @lazy-load="onLazyLoad"
+              @update:selected="onSelectedFolder"
+            >
+              <template #default-header="{ node }">
+                <div :ref="(element) => setTreeNodeElement(node.path, element)">
+                  {{ node.name }}
+                </div>
+              </template>
+            </q-tree>
           </div>
-        </template>
-      </q-tree>
+        </section>
+      </div>
     </q-drawer>
 
     <q-page-container>
       <q-page>
         <contents
           v-show="store.viewType === 'nodes'"
-          :contents="store.files"
+          :contents="visibleFiles"
           :list-type="store.listType"
+          :grid-icon-size="store.gridIconSize"
           :loading="store.loading"
           :error="store.error"
           :warning-count="store.warningCount"
@@ -91,22 +123,36 @@
 <script>
 import ShortcutLink from '@/components/ShortcutLink.vue'
 import Breadcrumbs from '@/components/Breadcrumbs.vue'
-import { defineComponent, ref, reactive, onBeforeMount, nextTick } from 'vue'
+import ExplorerMenu from '@/components/ExplorerMenu.vue'
+import {
+  computed,
+  defineComponent,
+  nextTick,
+  onBeforeMount,
+  onBeforeUnmount,
+  onMounted,
+  reactive,
+  ref,
+} from 'vue'
 import {
   walkFolders,
   windowsDrives,
   shortcutDirs,
   openFile,
+  openNewWindow,
   getEnvironment,
 } from '../backend/utils.js'
 import { useExplorerStore } from '../store/explorerStore.js'
 import {
   areFileSystemPathsEqual,
   createLatestRequestGuard,
+  getExplorerKeyboardAction,
   getFileSystemRoot,
   getFileSystemErrorMessage,
+  getParentFileSystemPath,
   getShortcutLinks,
   getTreePathKeys,
+  isFileSystemEntryVisible,
 } from '../utils/fileExplorer.js'
 import Contents from '../components/Contents.vue'
 
@@ -116,11 +162,13 @@ export default defineComponent({
   components: {
     ShortcutLink,
     Breadcrumbs,
+    ExplorerMenu,
     Contents,
   },
 
   setup() {
     const treeRef = ref(null),
+      menuRef = ref(null),
       leftDrawerOpen = ref(false),
       folderTree = reactive([]),
       shortcutLinks = reactive([]),
@@ -131,6 +179,15 @@ export default defineComponent({
       drives = reactive([]),
       pathSeparator = ref(''),
       platform = ref('')
+
+    const gridIconSizes = Object.freeze([56, 75, 96, 120]),
+      visibleFiles = computed(() =>
+        store.files.filter((entry) => isFileSystemEntryVisible(entry, store.showHiddenFiles)),
+      ),
+      canDecreaseIconSize = computed(() => gridIconSizes.indexOf(store.gridIconSize) > 0),
+      canIncreaseIconSize = computed(
+        () => gridIconSizes.indexOf(store.gridIconSize) < gridIconSizes.length - 1,
+      )
 
     // Directory reads happen in Electron's main process and may finish in a
     // different order than they started. This guard prevents an older, slower
@@ -178,6 +235,14 @@ export default defineComponent({
       }
     })
 
+    onMounted(() => {
+      window.addEventListener('keydown', onApplicationKeydown)
+    })
+
+    onBeforeUnmount(() => {
+      window.removeEventListener('keydown', onApplicationKeydown)
+    })
+
     // This handler runs only when the user changes QSelect. Updating
     // currentDrive programmatically while navigating must not redirect a
     // Windows home/shortcut path back to its drive root.
@@ -210,7 +275,7 @@ export default defineComponent({
 
     function getSideFolders(entries) {
       return sortContents(entries)
-        .filter((entry) => entry.isDir)
+        .filter((entry) => entry.isDir && isFileSystemEntryVisible(entry, store.showHiddenFiles))
         .map((entry) => ({
           ...entry,
           lazy: true,
@@ -434,6 +499,83 @@ export default defineComponent({
       }
     }
 
+    async function createNewWindow() {
+      try {
+        await openNewWindow()
+      } catch {
+        store.error = 'Unable to open a new File Explorer window.'
+      }
+    }
+
+    function setContentView(view) {
+      if (view === 'grid' || view === 'list') {
+        store.listType = view
+      }
+    }
+
+    function changeIconSize(direction) {
+      const currentIndex = gridIconSizes.indexOf(store.gridIconSize)
+      const nextIndex = Math.min(gridIconSizes.length - 1, Math.max(0, currentIndex + direction))
+      store.gridIconSize = gridIconSizes[nextIndex]
+    }
+
+    async function reloadTreePath(absolutePath) {
+      // Force the tree to rebuild from its platform root. This is necessary
+      // when visibility changes because previously lazy-loaded child arrays
+      // contain the old hidden-file filter.
+      treeRootPath = ''
+      await revealTreePath(absolutePath)
+    }
+
+    async function toggleHiddenFiles() {
+      store.showHiddenFiles = !store.showHiddenFiles
+      await reloadTreePath(selectedFolder.value)
+    }
+
+    async function refreshSelectedFolder() {
+      const targetPath = selectedFolder.value
+      await loadSelectedFolder(targetPath)
+
+      if (selectedFolder.value === targetPath) {
+        await reloadTreePath(targetPath)
+      }
+    }
+
+    async function navigateToParentFolder() {
+      const parentPath = getParentFileSystemPath(
+        selectedFolder.value,
+        pathSeparator.value,
+        platform.value,
+      )
+
+      if (parentPath !== selectedFolder.value) {
+        await onSelectedFolder(parentPath)
+      }
+    }
+
+    function onApplicationKeydown(event) {
+      if (event.defaultPrevented || event.isComposing) return
+
+      const actionName = getExplorerKeyboardAction(event, platform.value)
+      if (!actionName) return
+
+      event.preventDefault()
+      const actions = {
+        newWindow: () => {
+          if (event.repeat !== true) void createNewWindow()
+        },
+        toggleHiddenFiles: () => void toggleHiddenFiles(),
+        openLocation: () => menuRef.value?.openLocationDialog(),
+        refresh: () => void refreshSelectedFolder(),
+        gridView: () => setContentView('grid'),
+        listView: () => setContentView('list'),
+        increaseIconSize: () => changeIconSize(1),
+        decreaseIconSize: () => changeIconSize(-1),
+        parentFolder: () => void navigateToParentFolder(),
+      }
+      actions[actionName]()
+    }
+
     function toggleListType() {
       store.listType = store.listType === 'grid' ? 'list' : 'grid'
     }
@@ -441,12 +583,16 @@ export default defineComponent({
     return {
       store,
       treeRef,
+      menuRef,
       leftDrawerOpen,
       toggleLeftDrawer() {
         leftDrawerOpen.value = !leftDrawerOpen.value
       },
       shortcutLinks,
       folderTree,
+      visibleFiles,
+      canDecreaseIconSize,
+      canIncreaseIconSize,
       selectedFolder,
       pathSeparator,
       platform,
@@ -460,8 +606,50 @@ export default defineComponent({
       isShortcutSelected,
       onDblClicked,
       onSelectedFolder,
+      createNewWindow,
+      changeIconSize,
+      setContentView,
+      toggleHiddenFiles,
+      refreshSelectedFolder,
+      navigateToParentFolder,
       toggleListType,
     }
   },
 })
 </script>
+
+<style scoped>
+/*
+ * The drawer itself must not scroll: each navigation pane owns its overflow.
+ * min-height: 0 is essential in a flex column because it permits the panes to
+ * shrink below their content height and activate their own scroll containers.
+ */
+.drawer-navigation {
+  height: 100%;
+  overflow: hidden;
+}
+
+.drawer-pane {
+  min-height: 0;
+}
+
+.drawer-pane--shortcuts {
+  flex: 0 1 auto;
+  max-height: 50%;
+}
+
+.drawer-pane--filesystem {
+  flex: 1 1 0;
+}
+
+.drawer-pane__scroll {
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.drawer-pane--shortcuts .drawer-pane__scroll,
+.drawer-pane--filesystem .drawer-pane__scroll {
+  flex: 1 1 auto;
+}
+</style>
