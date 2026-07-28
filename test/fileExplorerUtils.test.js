@@ -4,7 +4,9 @@ import test from 'node:test'
 import {
   areFileSystemPathsEqual,
   createLatestRequestGuard,
+  getEnteredPathErrorMessage,
   getExplorerKeyboardAction,
+  getExplorerWheelDirection,
   getFileSystemRoot,
   getFileSystemErrorMessage,
   getParentFileSystemPath,
@@ -38,6 +40,21 @@ test('getFileSystemErrorMessage maps common filesystem failures to useful UI tex
   assert.equal(
     getFileSystemErrorMessage({ path: '/file', code: 'ENOTDIR' }),
     '“/file” is not a directory.',
+  )
+})
+
+test('entered path errors explain the failed request without implying prior existence', () => {
+  assert.equal(
+    getEnteredPathErrorMessage('/opt/ivt', { code: 'ENOENT' }),
+    'Unable to find “/opt/ivt”. Please check the spelling and try again.',
+  )
+  assert.equal(
+    getEnteredPathErrorMessage('/home/jeff/file.txt', { code: 'ENOTDIR' }),
+    '“/home/jeff/file.txt” is not a folder.',
+  )
+  assert.equal(
+    getEnteredPathErrorMessage('/root', { code: 'EACCES' }),
+    'You do not have permission to open “/root”.',
   )
 })
 
@@ -142,4 +159,16 @@ test('keyboard actions use Control on Windows/Linux and Command on macOS', () =>
   assert.equal(getExplorerKeyboardAction({ key: 'ArrowUp', altKey: true }, 'linux'), 'parentFolder')
   assert.equal(getExplorerKeyboardAction({ key: '1', ctrlKey: true }, 'linux'), 'gridView')
   assert.equal(getExplorerKeyboardAction({ key: '+', metaKey: true }, 'darwin'), 'increaseIconSize')
+})
+
+test('modified mouse-wheel gestures resize icons without accepting browser zoom modifiers', () => {
+  assert.equal(getExplorerWheelDirection({ deltaY: -100, ctrlKey: true }, 'linux'), 1)
+  assert.equal(getExplorerWheelDirection({ deltaY: 100, ctrlKey: true }, 'win32'), -1)
+  assert.equal(getExplorerWheelDirection({ deltaY: -1, metaKey: true }, 'darwin'), 1)
+  assert.equal(getExplorerWheelDirection({ deltaY: -100, ctrlKey: true }, 'darwin'), 0)
+  assert.equal(
+    getExplorerWheelDirection({ deltaY: -100, ctrlKey: true, shiftKey: true }, 'linux'),
+    0,
+  )
+  assert.equal(getExplorerWheelDirection({ deltaY: 0, ctrlKey: true }, 'linux'), 0)
 })

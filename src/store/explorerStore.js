@@ -1,6 +1,11 @@
 import { inject, provide, reactive } from 'vue'
 import { explorerStoreKey } from './symbols.js'
 
+// Keep an odd number of evenly spaced choices so the initial size always has
+// the same number of smaller and larger steps available in the view menu.
+export const gridIconSizes = Object.freeze([32, 48, 64, 80, 96])
+const defaultGridIconSize = gridIconSizes[Math.floor(gridIconSizes.length / 2)]
+
 export function useExplorerStore() {
   return inject(explorerStoreKey)
 }
@@ -12,7 +17,7 @@ export function provideExplorerStore() {
     files: [],
     viewType: 'nodes',
     listType: 'grid',
-    gridIconSize: 75,
+    gridIconSize: defaultGridIconSize,
     showHiddenFiles: false,
     loading: false,
     error: '',

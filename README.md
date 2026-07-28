@@ -100,7 +100,7 @@ Items that have been added since the last tutorial:
 - A compact application menu with new-window, view, icon-size, refresh, path,
   hidden-dotfile, parent-folder, and About actions
 - Platform-aware keyboard shortcuts that use Ctrl on Windows/Linux and Command
-  on macOS
+  on macOS, including modified mouse-wheel icon sizing
 - Bounded image thumbnails
 - Explicit loading, empty-folder, partial-read, and error states
 

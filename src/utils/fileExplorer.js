@@ -20,6 +20,22 @@ export function getFileSystemErrorMessage(error) {
   }
 }
 
+export function getEnteredPathErrorMessage(absolutePath, error) {
+  const path = `“${absolutePath}”`
+
+  switch (error?.code) {
+    case 'ENOENT':
+      return `Unable to find ${path}. Please check the spelling and try again.`
+    case 'ENOTDIR':
+      return `${path} is not a folder.`
+    case 'EACCES':
+    case 'EPERM':
+      return `You do not have permission to open ${path}.`
+    default:
+      return `Unable to open ${path}. Please check the path and try again.`
+  }
+}
+
 // Filesystem requests can finish out of order. A small request guard keeps the
 // Vue layout independent from the IPC implementation while ensuring that only
 // the most recent navigation is allowed to update the visible directory.
@@ -146,10 +162,7 @@ export function getParentFileSystemPath(absolutePath, pathSeparator, platform) {
 
 export function getExplorerKeyboardAction(event, platform) {
   const key = event.key.toLowerCase()
-  const usesPrimaryModifier =
-    platform === 'darwin'
-      ? event.metaKey === true && event.ctrlKey !== true
-      : event.ctrlKey === true && event.metaKey !== true
+  const usesPrimaryModifier = hasPrimaryModifier(event, platform)
 
   if (usesPrimaryModifier && event.altKey !== true) {
     return (
@@ -183,4 +196,26 @@ export function getExplorerKeyboardAction(event, platform) {
   }
 
   return null
+}
+
+export function getExplorerWheelDirection(event, platform) {
+  if (
+    hasPrimaryModifier(event, platform) !== true ||
+    event.altKey === true ||
+    event.shiftKey === true ||
+    Number.isFinite(event.deltaY) !== true ||
+    event.deltaY === 0
+  ) {
+    return 0
+  }
+
+  // Scrolling upward enlarges icons and scrolling downward reduces them,
+  // matching the direction used by common desktop file managers.
+  return event.deltaY < 0 ? 1 : -1
+}
+
+function hasPrimaryModifier(event, platform) {
+  return platform === 'darwin'
+    ? event.metaKey === true && event.ctrlKey !== true
+    : event.ctrlKey === true && event.metaKey !== true
 }

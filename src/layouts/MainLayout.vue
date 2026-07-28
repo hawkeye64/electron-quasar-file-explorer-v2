@@ -33,7 +33,7 @@
           @increase-icon-size="changeIconSize(1)"
           @set-view="setContentView"
           @toggle-hidden-files="toggleHiddenFiles"
-          @open-path="onSelectedFolder"
+          @open-path="openEnteredPath"
           @parent="navigateToParentFolder"
           @refresh="refreshSelectedFolder"
         />
@@ -117,6 +117,21 @@
         />
       </q-page>
     </q-page-container>
+
+    <q-dialog v-model="locationErrorDialogOpen">
+      <q-card class="location-error-dialog">
+        <q-card-section>
+          <div class="text-h6">Oops! Something went wrong.</div>
+          <p class="q-mb-none q-mt-sm">{{ locationErrorMessage }}</p>
+        </q-card-section>
+
+        <q-separator />
+
+        <q-card-actions align="right">
+          <q-btn v-close-popup autofocus flat color="primary" label="OK" />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
   </q-layout>
 </template>
 
@@ -142,11 +157,13 @@ import {
   openNewWindow,
   getEnvironment,
 } from '../backend/utils.js'
-import { useExplorerStore } from '../store/explorerStore.js'
+import { gridIconSizes, useExplorerStore } from '../store/explorerStore.js'
 import {
   areFileSystemPathsEqual,
   createLatestRequestGuard,
+  getEnteredPathErrorMessage,
   getExplorerKeyboardAction,
+  getExplorerWheelDirection,
   getFileSystemRoot,
   getFileSystemErrorMessage,
   getParentFileSystemPath,
@@ -178,10 +195,11 @@ export default defineComponent({
       selectedKey = ref(null),
       drives = reactive([]),
       pathSeparator = ref(''),
-      platform = ref('')
+      platform = ref(''),
+      locationErrorDialogOpen = ref(false),
+      locationErrorMessage = ref('')
 
-    const gridIconSizes = Object.freeze([56, 75, 96, 120]),
-      visibleFiles = computed(() =>
+    const visibleFiles = computed(() =>
         store.files.filter((entry) => isFileSystemEntryVisible(entry, store.showHiddenFiles)),
       ),
       canDecreaseIconSize = computed(() => gridIconSizes.indexOf(store.gridIconSize) > 0),
@@ -200,7 +218,9 @@ export default defineComponent({
       loadedTreeNodes = new Set(),
       treeLoadStates = new Map(),
       treeNodeElements = new Map()
-    let treeRootPath = ''
+    const wheelListenerOptions = { passive: false }
+    let treeRootPath = '',
+      lastIconWheelAdjustment = 0
 
     onBeforeMount(async () => {
       try {
@@ -237,10 +257,12 @@ export default defineComponent({
 
     onMounted(() => {
       window.addEventListener('keydown', onApplicationKeydown)
+      window.addEventListener('wheel', onApplicationWheel, wheelListenerOptions)
     })
 
     onBeforeUnmount(() => {
       window.removeEventListener('keydown', onApplicationKeydown)
+      window.removeEventListener('wheel', onApplicationWheel, wheelListenerOptions)
     })
 
     // This handler runs only when the user changes QSelect. Updating
@@ -488,6 +510,45 @@ export default defineComponent({
       }
     }
 
+    async function openEnteredPath(absolutePath) {
+      const navigationId = navigationRequests.begin()
+      let opened = false
+      store.loading = true
+
+      try {
+        const listing = await walkFolders(absolutePath)
+
+        if (navigationRequests.isLatest(navigationId) !== true) {
+          return
+        }
+
+        if (listing.error) {
+          locationErrorMessage.value = getEnteredPathErrorMessage(absolutePath, listing.error)
+          locationErrorDialogOpen.value = true
+        } else {
+          // Unlike tree and shortcut navigation, a typed path is untrusted user
+          // input. Commit it to the UI only after Electron confirms that the
+          // folder can be read, so a typo cannot replace the current location.
+          setSelectedFolder(absolutePath)
+          applyDirectoryListing(listing)
+          opened = true
+        }
+      } catch (error) {
+        if (navigationRequests.isLatest(navigationId)) {
+          locationErrorMessage.value = getEnteredPathErrorMessage(absolutePath, error)
+          locationErrorDialogOpen.value = true
+        }
+      } finally {
+        if (navigationRequests.isLatest(navigationId)) {
+          store.loading = false
+        }
+      }
+
+      if (opened) {
+        await revealTreePath(absolutePath)
+      }
+    }
+
     async function onFileSelected(node) {
       try {
         const errorMessage = await openFile(node.path)
@@ -576,6 +637,21 @@ export default defineComponent({
       actions[actionName]()
     }
 
+    function onApplicationWheel(event) {
+      const direction = getExplorerWheelDirection(event, platform.value)
+      if (direction === 0) return
+
+      // The listener must be non-passive so the app can replace Chromium page
+      // zoom with explorer icon sizing. A short interval turns high-frequency
+      // touchpad gestures into deliberate one-level adjustments.
+      event.preventDefault()
+      const now = performance.now()
+      if (now - lastIconWheelAdjustment < 120) return
+
+      lastIconWheelAdjustment = now
+      changeIconSize(direction)
+    }
+
     function toggleListType() {
       store.listType = store.listType === 'grid' ? 'list' : 'grid'
     }
@@ -584,6 +660,8 @@ export default defineComponent({
       store,
       treeRef,
       menuRef,
+      locationErrorDialogOpen,
+      locationErrorMessage,
       leftDrawerOpen,
       toggleLeftDrawer() {
         leftDrawerOpen.value = !leftDrawerOpen.value
@@ -606,6 +684,7 @@ export default defineComponent({
       isShortcutSelected,
       onDblClicked,
       onSelectedFolder,
+      openEnteredPath,
       createNewWindow,
       changeIconSize,
       setContentView,
@@ -651,5 +730,9 @@ export default defineComponent({
 .drawer-pane--shortcuts .drawer-pane__scroll,
 .drawer-pane--filesystem .drawer-pane__scroll {
   flex: 1 1 auto;
+}
+
+.location-error-dialog {
+  width: min(420px, calc(100vw - 32px));
 }
 </style>
