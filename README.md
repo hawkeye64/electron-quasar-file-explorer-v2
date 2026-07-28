@@ -16,7 +16,7 @@ This is a rudimentary File Explorer that works for Windows, Mac and Linux system
 
 ## Current Stack
 
-- App version `3.0.4`
+- App version `3.1.0`
 - Quasar `2.23.3`
 - `@quasar/app-vite` `3.2.0`
 - Vue `3.5.40`
@@ -43,7 +43,7 @@ Electron runtime dependencies live in `src-electron/package.json`, while rendere
 - Electron Builder packaging with app icons under `src-electron/electron-assets/icons`.
 - Custom app, favicon, and file-type icons generated from source SVG assets.
 - Node's built-in test runner plus a Node 24 / pnpm 11 verification workflow
-  and cross-platform Electron build matrix.
+  and a cross-platform Electron build-and-runtime-smoke matrix.
 
 ## How The Electron Boundary Works
 
@@ -81,6 +81,8 @@ pnpm verify
 
 `pnpm verify` runs formatting, lint, type checking, behavioral tests, and a
 production Electron build. The focused tests can be run with `pnpm test`.
+After a production build, `pnpm smoke:packaged` launches the native packaged
+application, verifies the preload/IPC/filesystem path, and exits automatically.
 
 ## Build
 

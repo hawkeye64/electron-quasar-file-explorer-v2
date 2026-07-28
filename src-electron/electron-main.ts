@@ -11,6 +11,7 @@ import { trustRenderer, useHandler } from './handler'
 
 // needed in case process is undefined under Linux
 const platform = process.platform || os.platform()
+const smokeTestRequested = process.env.FILE_EXPLORER_SMOKE_TEST === '1'
 
 try {
   // Electron can hold stale DevTools extension metadata on Windows dark mode.
@@ -27,6 +28,9 @@ async function createWindow() {
     icon: resolveElectronAssetsPath('icons/icon.png'),
     width: 1000,
     height: 600,
+    // CI launches the packaged app to verify the complete renderer/preload/IPC
+    // path. Keep that diagnostic window hidden from hosted runner desktops.
+    show: smokeTestRequested !== true,
     useContentSize: true,
     webPreferences: {
       // Run preload code in an isolated JavaScript world so page scripts cannot
@@ -77,16 +81,70 @@ async function createWindow() {
       mainWindow?.webContents.closeDevTools()
     })
   }
+
+  return mainWindow
 }
 
-void app.whenReady().then(async () => {
+async function runPackagedSmokeTest(mainWindow: BrowserWindow) {
+  // executeJavaScript runs in the isolated renderer world, so this verifies the
+  // same contextBridge API that Vue uses instead of reaching into Electron
+  // internals from the main process.
+  const result = await mainWindow.webContents.executeJavaScript(`
+    (async () => {
+      if (typeof window.myShell !== 'object') {
+        return { error: 'The preload bridge is unavailable.' }
+      }
+
+      const [environment, shortcutFolders] = await Promise.all([
+        window.myShell.environment(),
+        window.myShell.shortcutFolders()
+      ])
+      const listing = await window.myShell.walkFolders(shortcutFolders.home)
+
+      return {
+        platform: environment.platform,
+        home: shortcutFolders.home,
+        entryCount: Array.isArray(listing.entries) ? listing.entries.length : -1,
+        error: listing.error?.message || null
+      }
+    })()
+  `)
+
+  if (
+    typeof result?.platform !== 'string' ||
+    typeof result?.home !== 'string' ||
+    result.home.length === 0 ||
+    Number.isInteger(result.entryCount) !== true ||
+    result.entryCount < 0 ||
+    result.error !== null
+  ) {
+    throw new Error(`Packaged application smoke test failed: ${JSON.stringify(result)}`)
+  }
+
+  console.info(
+    `Packaged application smoke test passed on ${result.platform} ` +
+      `(${result.entryCount} home entries).`,
+  )
+}
+
+async function startApplication() {
   // Quasar's runtime wires aliases/assets used by Electron main/preload code.
   await registerQuasarRuntime()
 
   // Register IPC channels before the renderer has a chance to call them.
-  useHandler({ newWindow: createWindow })
+  useHandler({
+    newWindow: async () => {
+      await createWindow()
+    },
+  })
 
-  await createWindow()
+  const mainWindow = await createWindow()
+
+  if (smokeTestRequested) {
+    await runPackagedSmokeTest(mainWindow)
+    app.exit(0)
+    return
+  }
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {
@@ -95,7 +153,15 @@ void app.whenReady().then(async () => {
       })
     }
   })
-})
+}
+
+void app
+  .whenReady()
+  .then(startApplication)
+  .catch((error) => {
+    console.error('Failed to start File Explorer:', error)
+    app.exit(1)
+  })
 
 app.on('window-all-closed', () => {
   if (platform !== 'darwin') {

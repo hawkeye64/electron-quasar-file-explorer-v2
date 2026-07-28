@@ -61,3 +61,6 @@ jobs:
 
       - name: Build Electron app
         run: pnpm verify:build
+
+      - name: Smoke-test packaged app
+        run: pnpm smoke:packaged

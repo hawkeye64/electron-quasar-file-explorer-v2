@@ -1,6 +1,6 @@
 {
   "name": "electron-quasar-file-explorer-v2",
-  "version": "3.0.4",
+  "version": "3.1.0",
   "private": true,
   "description": "Explore your file system",
   "author": "Jeff Galbraith <galbraith64@gmail.com>",
@@ -10,6 +10,7 @@
     "dev": "node scripts/dev-electron.mjs",
     "build": "quasar build -m electron",
     "build:ci": "quasar build -m electron --publish never",
+    "smoke:packaged": "node scripts/smoke-packaged.mjs",
     "electron:install": "pnpm --dir src-electron install",
     "lint": "oxlint --ignore-path .oxlintignore .",
     "lint:fix": "oxlint --ignore-path .oxlintignore --fix .",
