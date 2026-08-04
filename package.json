@@ -28,26 +28,26 @@
   "dependencies": {
     "@quasar/extras": "2.0.2",
     "pretty-bytes": "^7.1.1",
-    "quasar": "2.23.3",
+    "quasar": "2.23.5",
     "vue": "3.5.40",
     "vue-router": "5.2.0"
   },
   "devDependencies": {
-    "@quasar/app-vite": "3.2.0",
+    "@quasar/app-vite": "3.3.1",
     "@types/node": "^26.1.2",
     "autoprefixer": "^10.5.4",
-    "npm-check-updates": "^23.0.0",
-    "oxfmt": "^0.61.0",
-    "oxlint": "^1.76.0",
+    "npm-check-updates": "^23.0.1",
+    "oxfmt": "^0.62.0",
+    "oxlint": "^1.77.0",
     "typescript": "~6.0.3",
     "vite-plugin-checker": "^0.14.5",
-    "vue-tsc": "^3.3.8"
+    "vue-tsc": "^3.3.9"
   },
   "engines": {
     "node": ">=24.14.1",
     "pnpm": ">=11.5.0"
   },
-  "packageManager": "pnpm@11.13.0",
+  "packageManager": "pnpm@11.20.0",
   "desktopName": "electron-quasar-file-explorer-v2",
   "productName": "File Explorer"
 }
