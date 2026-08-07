@@ -28,12 +28,12 @@
   "dependencies": {
     "@quasar/extras": "2.0.2",
     "pretty-bytes": "^7.1.1",
-    "quasar": "2.23.5",
-    "vue": "3.5.40",
+    "quasar": "2.24.0",
+    "vue": "3.5.41",
     "vue-router": "5.2.0"
   },
   "devDependencies": {
-    "@quasar/app-vite": "3.3.1",
+    "@quasar/app-vite": "3.5.0",
     "@types/node": "^26.1.2",
     "autoprefixer": "^10.5.4",
     "npm-check-updates": "^23.0.1",

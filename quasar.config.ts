@@ -83,7 +83,7 @@ export default function (ctx: QuasarConfigContext) {
 
       builder: {
         appId: 'electron-quasar-file-explorer-v2',
-        electronVersion: '43.2.0',
+        electronVersion: '43.3.0',
         productName: 'File Explorer',
         linux: {
           category: 'Utility',
