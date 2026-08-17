@@ -17,50 +17,19 @@
   </q-item>
 </template>
 
-<script>
-import { defineComponent } from 'vue'
-
-export default defineComponent({
-  name: 'ShortcutLink',
-
-  props: {
-    name: {
-      type: String,
-      required: true,
-    },
-
-    path: {
-      type: String,
-      default: '',
-    },
-
-    icon: {
-      type: String,
-      default: '',
-    },
-
-    // The parent owns navigation state. Keeping this component presentational
-    // lets the same shortcut accurately reflect tree, breadcrumb, and
-    // content-pane navigation instead of only remembering its last click.
-    active: Boolean,
-  },
-
-  emits: ['shortcut'],
-
-  setup(props, { emit }) {
-    function onClick() {
-      const shortcut = {
-        name: props.name,
-        path: props.path,
-      }
-      emit('shortcut', shortcut)
-    }
-
-    return {
-      onClick,
-    }
-  },
+<script setup>
+const props = defineProps({
+  name: { type: String, required: true },
+  path: { type: String, default: '' },
+  icon: { type: String, default: '' },
+  // Navigation state stays in the parent so every navigation surface agrees.
+  active: Boolean,
 })
+const emit = defineEmits(['shortcut'])
+
+function onClick() {
+  emit('shortcut', { name: props.name, path: props.path })
+}
 </script>
 
 <style scoped>

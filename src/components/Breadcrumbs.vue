@@ -12,107 +12,83 @@
   </div>
 </template>
 
-<script>
-import { defineComponent, watch, reactive } from 'vue'
+<script setup>
+import { reactive, watch } from 'vue'
 
-export default defineComponent({
-  name: 'Breadcrumbs',
-
-  props: {
-    absolutePath: {
-      type: String,
-      required: true,
-    },
-    pathSeparator: {
-      type: String,
-      required: true,
-    },
-    platform: {
-      type: String,
-      required: true,
-    },
-  },
-
-  emits: ['selected'],
-
-  setup(props, { emit }) {
-    const toolbarLinks = reactive([])
-
-    watch(
-      () => [props.absolutePath, props.pathSeparator, props.platform],
-      ([absolutePath]) => {
-        buildToolbarPath(absolutePath)
-      },
-      { immediate: true },
-    )
-
-    function onFolderSelected(node) {
-      emit('selected', node.path)
-    }
-
-    function buildToolbarPath(absolutePath) {
-      if (!props.pathSeparator) return
-
-      // The main process supplies the platform separator through the preload
-      // bridge. Using it here supports POSIX roots and Windows drive roots
-      // without exposing Node's path module to the sandboxed renderer.
-      toolbarLinks.splice(0, toolbarLinks.length)
-
-      if (!absolutePath) {
-        return
-      }
-
-      const toolbarLinks2 = []
-      let path = ''
-      const parts = absolutePath.split(props.pathSeparator)
-      if (parts.length > 1 && parts[parts.length - 1].trim() === '') {
-        parts.pop()
-      }
-
-      for (let index = 0; index < parts.length; ++index) {
-        let name = ''
-        if (index === 0) {
-          if (props.platform !== 'win32') {
-            name += '(root)'
-            path = props.pathSeparator
-          }
-
-          if (props.platform === 'win32') {
-            path += parts[index]
-            name += path
-            if (path.endsWith(':') === true) {
-              path += props.pathSeparator
-              name += props.pathSeparator
-            }
-          }
-        } else {
-          if (path.charAt(path.length - 1) !== props.pathSeparator) {
-            path += props.pathSeparator
-            name += props.pathSeparator
-          }
-
-          path += parts[index]
-          if (props.platform !== 'win32' && index === 1) {
-            name += props.pathSeparator
-          }
-          name += parts[index]
-        }
-
-        const object = {
-          path: path,
-          name: name,
-        }
-        toolbarLinks2.push(object)
-      }
-      toolbarLinks.push(...toolbarLinks2)
-    }
-
-    return {
-      toolbarLinks,
-      onFolderSelected,
-    }
-  },
+const props = defineProps({
+  absolutePath: { type: String, required: true },
+  pathSeparator: { type: String, required: true },
+  platform: { type: String, required: true },
 })
+const emit = defineEmits(['selected'])
+const toolbarLinks = reactive([])
+
+watch(
+  () => [props.absolutePath, props.pathSeparator, props.platform],
+  ([absolutePath]) => buildToolbarPath(absolutePath),
+  { immediate: true },
+)
+
+function onFolderSelected(node) {
+  emit('selected', node.path)
+}
+
+function buildToolbarPath(absolutePath) {
+  if (!props.pathSeparator) return
+
+  // The main process supplies the platform separator through the preload
+  // bridge. Using it here supports POSIX roots and Windows drive roots
+  // without exposing Node's path module to the sandboxed renderer.
+  toolbarLinks.splice(0, toolbarLinks.length)
+
+  if (!absolutePath) {
+    return
+  }
+
+  const toolbarLinks2 = []
+  let path = ''
+  const parts = absolutePath.split(props.pathSeparator)
+  if (parts.length > 1 && parts[parts.length - 1].trim() === '') {
+    parts.pop()
+  }
+
+  for (let index = 0; index < parts.length; ++index) {
+    let name = ''
+    if (index === 0) {
+      if (props.platform !== 'win32') {
+        name += '(root)'
+        path = props.pathSeparator
+      }
+
+      if (props.platform === 'win32') {
+        path += parts[index]
+        name += path
+        if (path.endsWith(':') === true) {
+          path += props.pathSeparator
+          name += props.pathSeparator
+        }
+      }
+    } else {
+      if (path.charAt(path.length - 1) !== props.pathSeparator) {
+        path += props.pathSeparator
+        name += props.pathSeparator
+      }
+
+      path += parts[index]
+      if (props.platform !== 'win32' && index === 1) {
+        name += props.pathSeparator
+      }
+      name += parts[index]
+    }
+
+    const object = {
+      path: path,
+      name: name,
+    }
+    toolbarLinks2.push(object)
+  }
+  toolbarLinks.push(...toolbarLinks2)
+}
 </script>
 
 <style>

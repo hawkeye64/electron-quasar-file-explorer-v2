@@ -1,14 +1,8 @@
 <template>
   <router-view />
 </template>
-<script>
-import { defineComponent } from 'vue'
+<script setup>
 import { provideExplorerStore } from './store/explorerStore.js'
 
-export default defineComponent({
-  name: 'App',
-  setup() {
-    provideExplorerStore()
-  },
-})
+provideExplorerStore()
 </script>
