@@ -1,13 +1,18 @@
 import { app, ipcMain, shell, type IpcMainInvokeEvent, type WebContents } from 'electron'
+import { watch, type FSWatcher } from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
 
 import { createImageThumbnail } from './imageThumbnail'
-import { validateAbsolutePath, validateThumbnailSize } from './validation'
+import { getFileProperties, transferFiles } from './fileOperations'
+import { openPathWithoutWaitingForApplication } from './openPath'
+import { validateAbsolutePath, validateAbsolutePaths, validateThumbnailSize } from './validation'
 import walkFolders from './walkFolders'
 import windowsDrives from './getWindowsDrives'
+import { getTrashItemCount, openTrash } from './trash'
 
 const trustedRendererIds = new Set<number>()
+const directoryWatchers = new Map<number, FSWatcher>()
 
 interface FileExplorerActions {
   newWindow: () => Promise<void>
@@ -20,6 +25,8 @@ export function trustRenderer(webContents: WebContents) {
   trustedRendererIds.add(webContents.id)
   webContents.once('destroyed', () => {
     trustedRendererIds.delete(webContents.id)
+    directoryWatchers.get(webContents.id)?.close()
+    directoryWatchers.delete(webContents.id)
   })
 }
 
@@ -52,6 +59,8 @@ export function useHandler({ newWindow }: FileExplorerActions) {
     return {
       // Electron owns its runtime metadata. Return it through the narrow bridge
       // instead of exposing process or other Node globals to the Vue renderer.
+      name: app.getName(),
+      version: app.getVersion(),
       electronVersion: process.versions.electron,
     }
   })
@@ -88,7 +97,10 @@ export function useHandler({ newWindow }: FileExplorerActions) {
   })
 
   handle('myShell:openFile', async (_event, requestedPath) => {
-    return await shell.openPath(validateAbsolutePath(requestedPath))
+    return await openPathWithoutWaitingForApplication(
+      validateAbsolutePath(requestedPath),
+      shell.openPath,
+    )
   })
 
   handle('myShell:imageThumbnail', async (_event, requestedPath, requestedSize) => {
@@ -96,5 +108,52 @@ export function useHandler({ newWindow }: FileExplorerActions) {
       validateAbsolutePath(requestedPath),
       validateThumbnailSize(requestedSize),
     )
+  })
+
+  handle('myShell:fileProperties', async (_event, requestedPath) => {
+    return await getFileProperties(requestedPath)
+  })
+
+  handle('myShell:transferFiles', async (_event, request) => {
+    return await transferFiles(request)
+  })
+
+  handle('myShell:trashFiles', async (_event, requestedPaths) => {
+    for (const filePath of validateAbsolutePaths(requestedPaths)) {
+      await shell.trashItem(filePath)
+    }
+  })
+
+  handle('myShell:watchDirectory', (event, requestedPath) => {
+    const directoryPath = validateAbsolutePath(requestedPath)
+    directoryWatchers.get(event.sender.id)?.close()
+
+    let timer: ReturnType<typeof setTimeout> | undefined
+    const watcher = watch(directoryPath, () => {
+      clearTimeout(timer)
+      timer = setTimeout(() => {
+        if (event.sender.isDestroyed() !== true) {
+          event.sender.send('myShell:directoryChanged', directoryPath)
+        }
+      }, 150)
+    })
+    watcher.on('error', () => {
+      watcher.close()
+      directoryWatchers.delete(event.sender.id)
+    })
+    directoryWatchers.set(event.sender.id, watcher)
+  })
+
+  handle('myShell:unwatchDirectory', (event) => {
+    directoryWatchers.get(event.sender.id)?.close()
+    directoryWatchers.delete(event.sender.id)
+  })
+
+  handle('myShell:trashInfo', async () => {
+    return { hasItems: (await getTrashItemCount()) > 0 }
+  })
+
+  handle('myShell:openTrash', async () => {
+    return await openTrash()
   })
 }

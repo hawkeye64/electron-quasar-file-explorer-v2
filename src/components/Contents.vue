@@ -23,6 +23,7 @@
             class="non-selectable"
             @click="onClick"
             @dblclick="onDblClick"
+            @contextmenu.prevent="onContextMenu(node)"
           />
         </template>
       </div>
@@ -60,12 +61,16 @@
               @dblclick.stop="dblRowClick(props.row)"
               @keydown.enter.prevent="dblRowClick(props.row)"
               @keydown.space.prevent="rowClick(props.row)"
+              @contextmenu.prevent="onContextMenu(props.row)"
             >
               <q-td key="type" :props="props" :style="'width: ' + imageWidth + 'px;'">
                 <grid-item-image :key="props.row.path" :node="props.row" :width="imageWidth" />
               </q-td>
-              <q-td key="label" :props="props">
-                {{ props.row.name }}
+              <q-td key="label" :props="props" class="file-name-cell">
+                <span class="file-name" :title="props.row.name">
+                  <span class="file-name-start">{{ getFileNameParts(props.row.name).start }}</span
+                  ><span class="file-name-end">{{ getFileNameParts(props.row.name).end }}</span>
+                </span>
               </q-td>
               <q-td key="size" :props="props">
                 {{ getSize(props.row) }}
@@ -80,6 +85,36 @@
     </div>
 
     <q-inner-loading :showing="loading" label="Loading folder…" />
+
+    <q-menu context-menu touch-position>
+      <q-list dense style="min-width: 180px">
+        <q-item v-close-popup clickable :disable="!selectedNode" @click="$emit('copy')">
+          <q-item-section avatar><q-icon name="content_copy" /></q-item-section>
+          <q-item-section>Copy</q-item-section>
+          <q-item-section side>Ctrl/Cmd+C</q-item-section>
+        </q-item>
+        <q-item v-close-popup clickable :disable="!selectedNode" @click="$emit('cut')">
+          <q-item-section avatar><q-icon name="content_cut" /></q-item-section>
+          <q-item-section>Cut</q-item-section>
+          <q-item-section side>Ctrl/Cmd+X</q-item-section>
+        </q-item>
+        <q-item v-close-popup clickable :disable="!clipboardAvailable" @click="$emit('paste')">
+          <q-item-section avatar><q-icon name="content_paste" /></q-item-section>
+          <q-item-section>Paste</q-item-section>
+          <q-item-section side>Ctrl/Cmd+V</q-item-section>
+        </q-item>
+        <q-separator />
+        <q-item v-close-popup clickable :disable="!selectedNode" @click="$emit('properties')">
+          <q-item-section avatar><q-icon name="info" /></q-item-section>
+          <q-item-section>Properties</q-item-section>
+        </q-item>
+        <q-item v-close-popup clickable :disable="!selectedNode" @click="$emit('trash')">
+          <q-item-section avatar><q-icon name="delete" /></q-item-section>
+          <q-item-section>Move to Trash</q-item-section>
+          <q-item-section side>Delete</q-item-section>
+        </q-item>
+      </q-list>
+    </q-menu>
   </div>
 </template>
 
@@ -89,7 +124,7 @@ import { date } from 'quasar'
 import prettyBytes from 'pretty-bytes'
 import GridItem from './GridItem.vue'
 import GridItemImage from './GridItemImage.vue'
-import { isValidTimestamp } from '../utils/fileExplorer.js'
+import { getFileNameDisplayParts, isValidTimestamp } from '../utils/fileExplorer.js'
 
 export default defineComponent({
   name: 'Contents',
@@ -124,9 +159,10 @@ export default defineComponent({
       type: Number,
       default: 0,
     },
+    clipboardAvailable: Boolean,
   },
 
-  emits: ['dblclick'],
+  emits: ['dblclick', 'select', 'copy', 'cut', 'paste', 'properties', 'trash'],
 
   setup(props, { emit }) {
     const selectedNode = ref(null),
@@ -187,6 +223,7 @@ export default defineComponent({
         // navigation replaces that listing and the selected path disappears.
         if (selectedNode.value && paths.includes(selectedNode.value.path) !== true) {
           selectedNode.value = null
+          emit('select', null)
         }
       },
     )
@@ -194,12 +231,17 @@ export default defineComponent({
     // when a node is single-clicked
     function onClick(node) {
       selectedNode.value = node
+      emit('select', node)
     }
 
     // when a node is double-clicked
     function onDblClick(node) {
       selectedNode.value = node
       emit('dblclick', node)
+    }
+
+    function onContextMenu(node) {
+      onClick(node)
     }
 
     function rowClick(node) {
@@ -225,6 +267,10 @@ export default defineComponent({
       return date.formatDate(modified, 'YYYY-MM-DD HH:mm:ss')
     }
 
+    function getFileNameParts(name) {
+      return getFileNameDisplayParts(name)
+    }
+
     function selectedStyleObject(node) {
       // Selection is local to the content view; opening/navigation state lives
       // in MainLayout and the shared explorer store.
@@ -246,10 +292,12 @@ export default defineComponent({
       pagination,
       onClick,
       onDblClick,
+      onContextMenu,
       rowClick,
       dblRowClick,
       getSize,
       getModified,
+      getFileNameParts,
       selectedStyleObject,
     }
   },
@@ -280,6 +328,10 @@ export default defineComponent({
 .my-sticky-header-table {
   height: calc(100vh - 50px);
 
+  :deep(table) {
+    table-layout: fixed;
+  }
+
   .q-table__top,
   .q-table__bottom,
   thead tr:first-child th {
@@ -298,5 +350,26 @@ export default defineComponent({
   &.q-table--loading thead tr:last-child th {
     top: 48px;
   }
+}
+
+.file-name-cell {
+  min-width: 0;
+}
+
+.file-name {
+  display: flex;
+  min-width: 0;
+  max-width: 100%;
+  white-space: nowrap;
+}
+
+.file-name-start {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.file-name-end {
+  flex: none;
 }
 </style>

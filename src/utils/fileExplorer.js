@@ -2,6 +2,29 @@ export function isValidTimestamp(value) {
   return typeof value === 'number' && Number.isFinite(value)
 }
 
+export function getFileNameDisplayParts(name, preservedEndingLength = 12) {
+  const characters = Array.from(name)
+  if (characters.length <= preservedEndingLength * 2) {
+    return { start: name, end: '' }
+  }
+
+  return {
+    start: characters.slice(0, -preservedEndingLength).join(''),
+    end: characters.slice(-preservedEndingLength).join(''),
+  }
+}
+
+export function truncateFileNameMiddle(name, maximumLength) {
+  const characters = Array.from(name)
+  if (characters.length <= maximumLength) return name
+
+  const visibleCharacters = Math.max(2, maximumLength - 1)
+  const endingLength = Math.floor(visibleCharacters / 2)
+  const startingLength = visibleCharacters - endingLength
+
+  return `${characters.slice(0, startingLength).join('')}…${characters.slice(-endingLength).join('')}`
+}
+
 export function getFileSystemErrorMessage(error) {
   if (!error) return ''
 
@@ -171,6 +194,10 @@ export function getExplorerKeyboardAction(event, platform) {
         h: 'toggleHiddenFiles',
         o: 'openLocation',
         r: 'refresh',
+        c: 'copy',
+        x: 'cut',
+        v: 'paste',
+        i: 'properties',
         1: 'gridView',
         2: 'listView',
         '+': 'increaseIconSize',
@@ -179,6 +206,15 @@ export function getExplorerKeyboardAction(event, platform) {
         _: 'decreaseIconSize',
       }[key] ?? null
     )
+  }
+
+  if (
+    key === 'delete' &&
+    event.ctrlKey !== true &&
+    event.metaKey !== true &&
+    event.altKey !== true
+  ) {
+    return 'trash'
   }
 
   if (key === 'f5' && event.ctrlKey !== true && event.metaKey !== true && event.altKey !== true) {

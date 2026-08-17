@@ -20,6 +20,20 @@ const fileExplorerShell = {
   environment: () => ipcRenderer.invoke('myShell:environment'),
   imageThumbnail: (filePath: string, size: number) =>
     ipcRenderer.invoke('myShell:imageThumbnail', filePath, size),
+  fileProperties: (filePath: string) => ipcRenderer.invoke('myShell:fileProperties', filePath),
+  transferFiles: (request) => ipcRenderer.invoke('myShell:transferFiles', request),
+  trashFiles: (filePaths: string[]) => ipcRenderer.invoke('myShell:trashFiles', filePaths),
+  watchDirectory: (folderPath: string) => ipcRenderer.invoke('myShell:watchDirectory', folderPath),
+  unwatchDirectory: () => ipcRenderer.invoke('myShell:unwatchDirectory'),
+  onDirectoryChanged: (listener: (folderPath: string) => void) => {
+    const eventListener = (_event: Electron.IpcRendererEvent, folderPath: string) => {
+      listener(folderPath)
+    }
+    ipcRenderer.on('myShell:directoryChanged', eventListener)
+    return () => ipcRenderer.removeListener('myShell:directoryChanged', eventListener)
+  },
+  trashInfo: () => ipcRenderer.invoke('myShell:trashInfo'),
+  openTrash: () => ipcRenderer.invoke('myShell:openTrash'),
 } satisfies FileExplorerShell
 
 contextBridge.exposeInMainWorld('myShell', fileExplorerShell)

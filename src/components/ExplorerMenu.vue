@@ -138,8 +138,8 @@
         <img :src="fileExplorerIcon" width="72" height="72" alt="" class="about-dialog__icon" />
 
         <div>
-          <div class="text-h5 text-weight-medium">File Explorer</div>
-          <div class="text-subtitle2 text-grey-7">Version {{ appVersion }}</div>
+          <div class="text-h5 text-weight-medium">{{ appInfo.name }}</div>
+          <div class="text-subtitle2 text-grey-7">Version {{ appInfo.version }}</div>
         </div>
       </q-card-section>
 
@@ -178,7 +178,6 @@
 <script>
 import { defineComponent, onBeforeMount, reactive, ref } from 'vue'
 import quasarPackage from 'quasar/package.json'
-import appPackage from '../../package.json'
 import fileExplorerIcon from '../assets/file-explorer-icon.svg'
 import { getAppInfo } from '../backend/utils.js'
 import { isAbsoluteFileSystemPath, normalizeEnteredFileSystemPath } from '../utils/fileExplorer.js'
@@ -216,6 +215,8 @@ export default defineComponent({
       locationInput = ref(''),
       aboutDialogOpen = ref(false),
       appInfo = reactive({
+        name: 'File Explorer',
+        version: '—',
         electronVersion: '—',
       })
 
@@ -254,7 +255,6 @@ export default defineComponent({
       locationInput,
       aboutDialogOpen,
       appInfo,
-      appVersion: appPackage.version,
       quasarVersion: quasarPackage.version,
       fileExplorerIcon,
       primaryShortcut,

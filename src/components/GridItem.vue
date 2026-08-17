@@ -14,111 +14,88 @@
       <grid-item-image :node="node" :width="width" />
     </div>
     <div class="griditemtext" :style="gridItemTextStyleObject" :title="node.name">
-      {{ node.name }}
+      {{ displayName }}
     </div>
   </div>
 </template>
 
-<script>
-import { computed, defineComponent, onBeforeUnmount } from 'vue'
+<script setup>
+import { computed, onBeforeUnmount } from 'vue'
 import GridItemImage from './GridItemImage.vue'
+import { truncateFileNameMiddle } from '../utils/fileExplorer.js'
 
-export default defineComponent({
-  name: 'GridItem',
-
-  components: {
-    GridItemImage,
-  },
-
-  props: {
-    node: {
-      type: Object,
-      required: true,
-    },
-    selectedNode: {
-      type: Object,
-    },
-    size: {
-      type: Number,
-      required: true,
-    },
-  },
-  emits: ['click', 'dblclick'],
-
-  setup(props, { emit }) {
-    const width = computed(() => props.size),
-      fontSize = 12,
-      delay = 200
-    let timer = null
-
-    onBeforeUnmount(clearClickTimer)
-
-    const gridItemContainerStyleObject = computed(() => {
-      if (props.node === props.selectedNode) {
-        // current node is selected
-        return {
-          backgroundColor: '#C0C0C0',
-          width: width.value + 'px',
-          height: width.value + 60 + 'px',
-        }
-      } else {
-        return {
-          backgroundColor: 'inherit',
-          width: width.value + 'px',
-          height: width.value + 60 + 'px',
-        }
-      }
-    })
-
-    const gridItemImageStyleObject = computed(() => {
-      return {
-        width: width.value + 'px',
-        height: width.value + 'px',
-      }
-    })
-
-    const gridItemTextStyleObject = computed(() => {
-      return {
-        fontSize: fontSize + 'px',
-      }
-    })
-
-    function clearClickTimer() {
-      if (timer !== null) {
-        clearTimeout(timer)
-        timer = null
-      }
-    }
-
-    function onClick() {
-      // Browsers emit two click events before a dblclick. A short timer lets the
-      // parent treat single-click selection and double-click open separately.
-      if (timer) {
-        return
-      }
-
-      emit('click', props.node)
-
-      timer = setTimeout(() => {
-        timer = null
-      }, delay)
-    }
-
-    function onDblClick() {
-      clearClickTimer()
-      emit('dblclick', props.node)
-    }
-
-    return {
-      width,
-      gridItemContainerStyleObject,
-      gridItemImageStyleObject,
-      gridItemTextStyleObject,
-      onClick,
-      onDblClick,
-    }
-  },
+const props = defineProps({
+  node: { type: Object, required: true },
+  selectedNode: { type: Object, default: null },
+  size: { type: Number, required: true },
 })
+const emit = defineEmits(['click', 'dblclick'])
+const width = computed(() => props.size),
+  displayName = computed(() => {
+    const charactersPerLine = Math.max(4, Math.floor(width.value / 7))
+    return truncateFileNameMiddle(props.node.name, charactersPerLine * 3)
+  }),
+  fontSize = 12,
+  delay = 200
+let timer = null
+
+onBeforeUnmount(clearClickTimer)
+
+const gridItemContainerStyleObject = computed(() => {
+  if (props.node === props.selectedNode) {
+    // current node is selected
+    return {
+      backgroundColor: '#C0C0C0',
+      width: width.value + 'px',
+      height: width.value + 60 + 'px',
+    }
+  } else {
+    return {
+      backgroundColor: 'inherit',
+      width: width.value + 'px',
+      height: width.value + 60 + 'px',
+    }
+  }
+})
+
+const gridItemImageStyleObject = computed(() => {
+  return {
+    width: width.value + 'px',
+    height: width.value + 'px',
+  }
+})
+
+const gridItemTextStyleObject = computed(() => {
+  return {
+    fontSize: fontSize + 'px',
+  }
+})
+
+function clearClickTimer() {
+  if (timer !== null) {
+    clearTimeout(timer)
+    timer = null
+  }
+}
+
+function onClick() {
+  // Browsers emit two click events before a dblclick. A short timer lets the
+  // parent treat single-click selection and double-click open separately.
+  if (timer) {
+    return
+  }
+
+  emit('click', props.node)
+
+  timer = setTimeout(() => {
+    timer = null
+  }, delay)
+}
+
+function onDblClick() {
+  clearClickTimer()
+  emit('dblclick', props.node)
+}
 </script>
 
 <style scoped>

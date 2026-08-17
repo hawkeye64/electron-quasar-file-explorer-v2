@@ -38,7 +38,35 @@ export interface FileExplorerEnvironment {
 }
 
 export interface FileExplorerAppInfo {
+  name: string
+  version: string
   electronVersion: string
+}
+
+export interface FileProperties {
+  path: string
+  name: string
+  isDirectory: boolean
+  isSymbolicLink: boolean
+  size: number
+  createdMs: number
+  modifiedMs: number
+  accessedMs: number
+  mimetype: string | null
+}
+
+export type FileTransferMode = 'copy' | 'move'
+
+export interface FileTransferRequest {
+  sources: string[]
+  destination: string
+  mode: FileTransferMode
+  overwrite?: boolean
+}
+
+export interface FileTransferResult {
+  completed: string[]
+  conflicts: string[]
 }
 
 export interface ShortcutFolders {
@@ -60,4 +88,12 @@ export interface FileExplorerShell {
   shortcutFolders: () => Promise<ShortcutFolders>
   environment: () => Promise<FileExplorerEnvironment>
   imageThumbnail: (path: string, size: number) => Promise<string | null>
+  fileProperties: (path: string) => Promise<FileProperties>
+  transferFiles: (request: FileTransferRequest) => Promise<FileTransferResult>
+  trashFiles: (paths: string[]) => Promise<void>
+  watchDirectory: (path: string) => Promise<void>
+  unwatchDirectory: () => Promise<void>
+  onDirectoryChanged: (listener: (path: string) => void) => () => void
+  trashInfo: () => Promise<{ hasItems: boolean }>
+  openTrash: () => Promise<string>
 }

@@ -93,3 +93,35 @@ export async function getImageThumbnail(node, size) {
 
   return await thumbnail
 }
+
+export async function getFileProperties(path) {
+  return await myShell.fileProperties(path)
+}
+
+export async function transferFiles(request) {
+  return await myShell.transferFiles(request)
+}
+
+export async function trashFiles(paths) {
+  await myShell.trashFiles(paths)
+}
+
+export async function watchDirectory(path) {
+  await myShell.watchDirectory(path)
+}
+
+export async function unwatchDirectory() {
+  await myShell.unwatchDirectory()
+}
+
+export function onDirectoryChanged(listener) {
+  return myShell.onDirectoryChanged(listener)
+}
+
+export async function getTrashInfo() {
+  return await myShell.trashInfo()
+}
+
+export async function openTrash() {
+  return await myShell.openTrash()
+}

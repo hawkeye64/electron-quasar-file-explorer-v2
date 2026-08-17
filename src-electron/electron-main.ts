@@ -28,6 +28,9 @@ async function createWindow() {
     icon: resolveElectronAssetsPath('icons/icon.png'),
     width: 1000,
     height: 600,
+    // Keep enough room for the navigation drawer and a usable content pane.
+    // This applies equally to the grid and detailed list views.
+    minWidth: 760,
     // CI launches the packaged app to verify the complete renderer/preload/IPC
     // path. Keep that diagnostic window hidden from hosted runner desktops.
     show: smokeTestRequested !== true,
@@ -95,16 +98,27 @@ async function runPackagedSmokeTest(mainWindow: BrowserWindow) {
         return { error: 'The preload bridge is unavailable.' }
       }
 
-      const [environment, shortcutFolders] = await Promise.all([
+      const [appInfo, environment, shortcutFolders, trashInfo] = await Promise.all([
+        window.myShell.appInfo(),
         window.myShell.environment(),
-        window.myShell.shortcutFolders()
+        window.myShell.shortcutFolders(),
+        window.myShell.trashInfo()
       ])
       const listing = await window.myShell.walkFolders(shortcutFolders.home)
+      const properties = await window.myShell.fileProperties(shortcutFolders.home)
 
       return {
+        appName: appInfo.name,
+        appVersion: appInfo.version,
         platform: environment.platform,
         home: shortcutFolders.home,
         entryCount: Array.isArray(listing.entries) ? listing.entries.length : -1,
+        homeIsDirectory: properties.isDirectory,
+        hasFileOperations:
+          typeof window.myShell.transferFiles === 'function' &&
+          typeof window.myShell.trashFiles === 'function' &&
+          typeof window.myShell.watchDirectory === 'function',
+        trashHasItems: trashInfo.hasItems,
         error: listing.error?.message || null
       }
     })()
@@ -112,10 +126,15 @@ async function runPackagedSmokeTest(mainWindow: BrowserWindow) {
 
   if (
     typeof result?.platform !== 'string' ||
+    result.appName !== app.getName() ||
+    result.appVersion !== app.getVersion() ||
     typeof result?.home !== 'string' ||
     result.home.length === 0 ||
     Number.isInteger(result.entryCount) !== true ||
     result.entryCount < 0 ||
+    result.homeIsDirectory !== true ||
+    result.hasFileOperations !== true ||
+    typeof result.trashHasItems !== 'boolean' ||
     result.error !== null
   ) {
     throw new Error(`Packaged application smoke test failed: ${JSON.stringify(result)}`)

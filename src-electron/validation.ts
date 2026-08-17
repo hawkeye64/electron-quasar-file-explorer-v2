@@ -22,6 +22,14 @@ export function validateAbsolutePath(value: unknown): string {
   return path.normalize(value)
 }
 
+export function validateAbsolutePaths(value: unknown): string[] {
+  if (!Array.isArray(value) || value.length === 0 || value.length > 1000) {
+    throw new TypeError('filesystem paths must be a non-empty array with at most 1000 entries')
+  }
+
+  return value.map(validateAbsolutePath)
+}
+
 /**
  * Bounding requested dimensions prevents the renderer from using the thumbnail
  * channel as an unbounded image-allocation primitive in Electron's main process.

@@ -58,6 +58,11 @@
               :active="isShortcutSelected(shortcut.path)"
               @shortcut="onShortcut"
             />
+            <shortcut-link
+              name="Trash"
+              :icon="trashHasItems ? 'delete' : 'delete_outline'"
+              @shortcut="openNativeTrash"
+            />
           </q-list>
         </section>
 
@@ -113,7 +118,14 @@
           :loading="store.loading"
           :error="store.error"
           :warning-count="store.warningCount"
+          :clipboard-available="clipboard.paths.length > 0"
           @dblclick="onDblClicked"
+          @select="selectedNode = $event"
+          @copy="setClipboard('copy')"
+          @cut="setClipboard('move')"
+          @paste="pasteClipboard"
+          @properties="showSelectedProperties"
+          @trash="deleteSelected"
         />
       </q-page>
     </q-page-container>
@@ -132,6 +144,58 @@
         </q-card-actions>
       </q-card>
     </q-dialog>
+
+    <q-dialog v-model="propertiesDialogOpen">
+      <q-card class="properties-dialog">
+        <q-card-section><div class="text-h6">Properties</div></q-card-section>
+        <q-separator />
+        <q-card-section v-if="selectedProperties">
+          <dl class="properties-list q-my-none">
+            <div>
+              <dt>Name</dt>
+              <dd>{{ selectedProperties.name }}</dd>
+            </div>
+            <div>
+              <dt>Path</dt>
+              <dd>{{ selectedProperties.path }}</dd>
+            </div>
+            <div>
+              <dt>Type</dt>
+              <dd>
+                {{
+                  selectedProperties.isDirectory ? 'Folder' : selectedProperties.mimetype || 'File'
+                }}
+              </dd>
+            </div>
+            <div>
+              <dt>Size</dt>
+              <dd>
+                {{ selectedProperties.isDirectory ? '—' : formatFileSize(selectedProperties.size) }}
+              </dd>
+            </div>
+            <div>
+              <dt>Created</dt>
+              <dd>{{ formatFileDate(selectedProperties.createdMs) }}</dd>
+            </div>
+            <div>
+              <dt>Modified</dt>
+              <dd>{{ formatFileDate(selectedProperties.modifiedMs) }}</dd>
+            </div>
+            <div>
+              <dt>Accessed</dt>
+              <dd>{{ formatFileDate(selectedProperties.accessedMs) }}</dd>
+            </div>
+            <div>
+              <dt>Symbolic link</dt>
+              <dd>{{ selectedProperties.isSymbolicLink ? 'Yes' : 'No' }}</dd>
+            </div>
+          </dl>
+        </q-card-section>
+        <q-card-actions align="right"
+          ><q-btn v-close-popup autofocus flat color="primary" label="Close"
+        /></q-card-actions>
+      </q-card>
+    </q-dialog>
   </q-layout>
 </template>
 
@@ -139,6 +203,8 @@
 import ShortcutLink from '@/components/ShortcutLink.vue'
 import Breadcrumbs from '@/components/Breadcrumbs.vue'
 import ExplorerMenu from '@/components/ExplorerMenu.vue'
+import { date } from 'quasar'
+import prettyBytes from 'pretty-bytes'
 import {
   computed,
   defineComponent,
@@ -156,6 +222,14 @@ import {
   openFile,
   openNewWindow,
   getEnvironment,
+  getFileProperties,
+  transferFiles,
+  trashFiles,
+  watchDirectory,
+  unwatchDirectory,
+  onDirectoryChanged,
+  getTrashInfo,
+  openTrash,
 } from '../backend/utils.js'
 import { gridIconSizes, useExplorerStore } from '../store/explorerStore.js'
 import {
@@ -197,7 +271,12 @@ export default defineComponent({
       pathSeparator = ref(''),
       platform = ref(''),
       locationErrorDialogOpen = ref(false),
-      locationErrorMessage = ref('')
+      locationErrorMessage = ref(''),
+      selectedNode = ref(null),
+      selectedProperties = ref(null),
+      propertiesDialogOpen = ref(false),
+      trashHasItems = ref(false),
+      clipboard = reactive({ paths: [], mode: 'copy' })
 
     const visibleFiles = computed(() =>
         store.files.filter((entry) => isFileSystemEntryVisible(entry, store.showHiddenFiles)),
@@ -212,6 +291,12 @@ export default defineComponent({
     // read from replacing the folder the user selected most recently.
     const navigationRequests = createLatestRequestGuard()
 
+    // Opening a file hands work to the operating system and may reject after
+    // the user has already navigated elsewhere. Navigation invalidates these
+    // results so an old failure cannot replace the new folder's state.
+    const fileOpenRequests = createLatestRequestGuard()
+    const trashOpenRequests = createLatestRequestGuard()
+
     // Tree navigation has its own lifecycle: revealing a shortcut may need to
     // change roots and lazy-load several ancestors before QTree can select it.
     const treeRevealRequests = createLatestRequestGuard(),
@@ -220,7 +305,10 @@ export default defineComponent({
       treeNodeElements = new Map()
     const wheelListenerOptions = { passive: false }
     let treeRootPath = '',
-      lastIconWheelAdjustment = 0
+      lastIconWheelAdjustment = 0,
+      drivePollTimer,
+      trashPollTimer,
+      removeDirectoryChangedListener
 
     onBeforeMount(async () => {
       try {
@@ -249,6 +337,13 @@ export default defineComponent({
         // The content pane opens at home, while the tree keeps its natural
         // filesystem root and expands down to home just like a native explorer.
         await Promise.all([loadSelectedFolder(initialFolder), revealTreePath(initialFolder)])
+        await watchDirectory(initialFolder)
+        await refreshTrashInfo()
+        trashPollTimer = window.setInterval(refreshTrashInfo, 2000)
+
+        if (platform.value === 'win32') {
+          drivePollTimer = window.setInterval(refreshWindowsDrives, 2000)
+        }
       } catch (error) {
         store.error = getFileSystemErrorMessage(error)
         store.loading = false
@@ -258,11 +353,20 @@ export default defineComponent({
     onMounted(() => {
       window.addEventListener('keydown', onApplicationKeydown)
       window.addEventListener('wheel', onApplicationWheel, wheelListenerOptions)
+      removeDirectoryChangedListener = onDirectoryChanged((changedPath) => {
+        if (areFileSystemPathsEqual(changedPath, selectedFolder.value, platform.value)) {
+          void refreshSelectedFolder()
+        }
+      })
     })
 
     onBeforeUnmount(() => {
       window.removeEventListener('keydown', onApplicationKeydown)
       window.removeEventListener('wheel', onApplicationWheel, wheelListenerOptions)
+      removeDirectoryChangedListener?.()
+      window.clearInterval(drivePollTimer)
+      window.clearInterval(trashPollTimer)
+      void unwatchDirectory()
     })
 
     // This handler runs only when the user changes QSelect. Updating
@@ -479,6 +583,9 @@ export default defineComponent({
     }
 
     function setSelectedFolder(absolutePath) {
+      fileOpenRequests.begin()
+      trashOpenRequests.begin()
+      selectedNode.value = null
       selectedFolder.value = absolutePath
       store.viewType = 'nodes'
 
@@ -506,6 +613,7 @@ export default defineComponent({
       // The directory request itself is guarded; tree revealing has a separate
       // guard because it may require several lazy IPC reads.
       if (selectedFolder.value === targetPath) {
+        await watchDirectory(targetPath)
         await revealTreePath(targetPath)
       }
     }
@@ -550,13 +658,16 @@ export default defineComponent({
     }
 
     async function onFileSelected(node) {
+      const requestId = fileOpenRequests.begin()
       try {
         const errorMessage = await openFile(node.path)
-        if (errorMessage) {
+        if (errorMessage && fileOpenRequests.isLatest(requestId)) {
           store.error = errorMessage
         }
       } catch {
-        store.error = `Unable to open “${node.path}”.`
+        if (fileOpenRequests.isLatest(requestId)) {
+          store.error = `Unable to open “${node.path}”.`
+        }
       }
     }
 
@@ -602,6 +713,111 @@ export default defineComponent({
       }
     }
 
+    async function refreshWindowsDrives() {
+      try {
+        const nextDrives = await windowsDrives()
+        if (nextDrives.join('\0') !== drives.join('\0')) {
+          drives.splice(0, drives.length, ...nextDrives)
+        }
+      } catch {
+        // A transient drive-enumeration failure must not interrupt browsing.
+      }
+    }
+
+    async function refreshTrashInfo() {
+      try {
+        trashHasItems.value = (await getTrashInfo()).hasItems
+      } catch {
+        // Trash status is decorative; failure must not interrupt browsing.
+      }
+    }
+
+    async function openNativeTrash() {
+      const requestId = trashOpenRequests.begin()
+      try {
+        const errorMessage = await openTrash()
+        if (errorMessage && trashOpenRequests.isLatest(requestId)) {
+          store.error = errorMessage
+        }
+      } catch {
+        if (trashOpenRequests.isLatest(requestId)) {
+          store.error = 'Unable to open the operating system trash.'
+        }
+      }
+    }
+
+    function setClipboard(mode) {
+      if (!selectedNode.value) return
+      clipboard.paths.splice(0, clipboard.paths.length, selectedNode.value.path)
+      clipboard.mode = mode
+    }
+
+    async function pasteClipboard() {
+      if (clipboard.paths.length === 0) return
+
+      try {
+        let result = await transferFiles({
+          sources: [...clipboard.paths],
+          destination: selectedFolder.value,
+          mode: clipboard.mode,
+        })
+        if (
+          result.conflicts.length > 0 &&
+          window.confirm(
+            `Replace ${result.conflicts.length === 1 ? 'the existing item' : `${result.conflicts.length} existing items`}?`,
+          )
+        ) {
+          result = await transferFiles({
+            sources: [...clipboard.paths],
+            destination: selectedFolder.value,
+            mode: clipboard.mode,
+            overwrite: true,
+          })
+        }
+        if (clipboard.mode === 'move' && result.completed.length > 0) {
+          clipboard.paths.splice(0)
+        }
+        await refreshSelectedFolder()
+      } catch (error) {
+        store.error = getFileSystemErrorMessage(error)
+      }
+    }
+
+    async function deleteSelected() {
+      if (
+        !selectedNode.value ||
+        window.confirm(`Move “${selectedNode.value.name}” to the trash?`) !== true
+      ) {
+        return
+      }
+      try {
+        await trashFiles([selectedNode.value.path])
+        selectedNode.value = null
+        await refreshTrashInfo()
+        await refreshSelectedFolder()
+      } catch (error) {
+        store.error = getFileSystemErrorMessage(error)
+      }
+    }
+
+    async function showSelectedProperties() {
+      if (!selectedNode.value) return
+      try {
+        selectedProperties.value = await getFileProperties(selectedNode.value.path)
+        propertiesDialogOpen.value = true
+      } catch (error) {
+        store.error = getFileSystemErrorMessage(error)
+      }
+    }
+
+    function formatFileSize(size) {
+      return prettyBytes(size)
+    }
+
+    function formatFileDate(timestamp) {
+      return date.formatDate(timestamp, 'YYYY-MM-DD HH:mm:ss')
+    }
+
     async function navigateToParentFolder() {
       const parentPath = getParentFileSystemPath(
         selectedFolder.value,
@@ -620,6 +836,14 @@ export default defineComponent({
       const actionName = getExplorerKeyboardAction(event, platform.value)
       if (!actionName) return
 
+      if (
+        ['copy', 'cut', 'paste', 'trash'].includes(actionName) &&
+        event.target instanceof HTMLElement &&
+        event.target.matches('input, textarea, [contenteditable="true"]')
+      ) {
+        return
+      }
+
       event.preventDefault()
       const actions = {
         newWindow: () => {
@@ -633,6 +857,11 @@ export default defineComponent({
         increaseIconSize: () => changeIconSize(1),
         decreaseIconSize: () => changeIconSize(-1),
         parentFolder: () => void navigateToParentFolder(),
+        copy: () => setClipboard('copy'),
+        cut: () => setClipboard('move'),
+        paste: () => void pasteClipboard(),
+        properties: () => void showSelectedProperties(),
+        trash: () => void deleteSelected(),
       }
       actions[actionName]()
     }
@@ -692,6 +921,18 @@ export default defineComponent({
       refreshSelectedFolder,
       navigateToParentFolder,
       toggleListType,
+      selectedNode,
+      clipboard,
+      setClipboard,
+      pasteClipboard,
+      deleteSelected,
+      selectedProperties,
+      propertiesDialogOpen,
+      showSelectedProperties,
+      formatFileSize,
+      formatFileDate,
+      trashHasItems,
+      openNativeTrash,
     }
   },
 })
@@ -734,5 +975,25 @@ export default defineComponent({
 
 .location-error-dialog {
   width: min(420px, calc(100vw - 32px));
+}
+
+.properties-dialog {
+  width: min(560px, calc(100vw - 32px));
+}
+
+.properties-list > div {
+  display: grid;
+  grid-template-columns: 100px minmax(0, 1fr);
+  gap: 16px;
+  margin-bottom: 8px;
+}
+
+.properties-list dt {
+  font-weight: 600;
+}
+
+.properties-list dd {
+  margin: 0;
+  overflow-wrap: anywhere;
 }
 </style>

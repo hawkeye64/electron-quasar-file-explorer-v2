@@ -9,6 +9,7 @@ import {
   getExplorerWheelDirection,
   getFileSystemRoot,
   getFileSystemErrorMessage,
+  getFileNameDisplayParts,
   getParentFileSystemPath,
   getShortcutLinks,
   getTreePathKeys,
@@ -16,6 +17,7 @@ import {
   isFileSystemEntryVisible,
   isValidTimestamp,
   normalizeEnteredFileSystemPath,
+  truncateFileNameMiddle,
 } from '../src/utils/fileExplorer.js'
 
 test('isValidTimestamp accepts finite timestamps including the Unix epoch', () => {
@@ -26,6 +28,26 @@ test('isValidTimestamp accepts finite timestamps including the Unix epoch', () =
   assert.equal(isValidTimestamp(Number.POSITIVE_INFINITY), false)
   assert.equal(isValidTimestamp('1725000000000'), false)
   assert.equal(isValidTimestamp(undefined), false)
+})
+
+test('file name display parts preserve the ending of long names for middle ellipsis', () => {
+  assert.deepEqual(getFileNameDisplayParts('short-name.md'), {
+    start: 'short-name.md',
+    end: '',
+  })
+  assert.deepEqual(getFileNameDisplayParts('quasar-full-audit-2026-07-27.md'), {
+    start: 'quasar-full-audit-2',
+    end: '026-07-27.md',
+  })
+})
+
+test('grid file names use a bounded middle ellipsis', () => {
+  assert.equal(truncateFileNameMiddle('short-name.md', 20), 'short-name.md')
+  assert.equal(
+    truncateFileNameMiddle('quasar-full-audit-2026-07-27.md', 21),
+    'quasar-ful…6-07-27.md',
+  )
+  assert.equal(Array.from(truncateFileNameMiddle('😀-a-very-long-name.md', 12)).length, 12)
 })
 
 test('getFileSystemErrorMessage maps common filesystem failures to useful UI text', () => {
@@ -159,6 +181,11 @@ test('keyboard actions use Control on Windows/Linux and Command on macOS', () =>
   assert.equal(getExplorerKeyboardAction({ key: 'ArrowUp', altKey: true }, 'linux'), 'parentFolder')
   assert.equal(getExplorerKeyboardAction({ key: '1', ctrlKey: true }, 'linux'), 'gridView')
   assert.equal(getExplorerKeyboardAction({ key: '+', metaKey: true }, 'darwin'), 'increaseIconSize')
+  assert.equal(getExplorerKeyboardAction({ key: 'c', ctrlKey: true }, 'linux'), 'copy')
+  assert.equal(getExplorerKeyboardAction({ key: 'x', metaKey: true }, 'darwin'), 'cut')
+  assert.equal(getExplorerKeyboardAction({ key: 'v', ctrlKey: true }, 'win32'), 'paste')
+  assert.equal(getExplorerKeyboardAction({ key: 'i', metaKey: true }, 'darwin'), 'properties')
+  assert.equal(getExplorerKeyboardAction({ key: 'Delete' }, 'linux'), 'trash')
 })
 
 test('modified mouse-wheel gestures resize icons without accepting browser zoom modifiers', () => {
