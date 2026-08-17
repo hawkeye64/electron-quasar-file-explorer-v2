@@ -16,9 +16,9 @@ This is a rudimentary File Explorer that works for Windows, Mac and Linux system
 
 ## Current Stack
 
-- App version `3.1.0`
-- Quasar `2.24.0`
-- `@quasar/app-vite` `3.5.0`
+- App version `3.2.0`
+- Quasar `2.25.0`
+- `@quasar/app-vite` `3.6.1`
 - Vue `3.5.41`
 - vue-router `5.2.0`
 - Electron `43.3.0`
@@ -105,6 +105,11 @@ Items that have been added since the last tutorial:
   on macOS, including modified mouse-wheel icon sizing
 - Bounded image thumbnails
 - Explicit loading, empty-folder, partial-read, and error states
+- File properties for the selected item
+- Copy, cut, paste, and trash operations with overwrite confirmation
+- Automatic refresh when the current directory changes outside the app
+- Removable-drive list refresh on Windows
+- A native Trash shortcut whose icon reflects whether the OS trash contains items
 
 Removed since last tutorial:
 
@@ -112,13 +117,9 @@ Removed since last tutorial:
 
 There is still plenty of work to be done to make it better.
 
-For example:
-
-- copy, paste, cut, delete
-- file info/properties
-- plug and play drives (ie: USBs)
-- automatic filesystem change notifications
-- and others
+The application deliberately moves deleted items to the operating system trash
+instead of exposing permanent deletion. File operations remain behind the same
+validated preload and IPC boundary as directory browsing.
 
 Feel free to PR if you would like to make it better for others.
 
