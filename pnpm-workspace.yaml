@@ -1,5 +1,6 @@
 overrides:
-  sass-embedded: 1.100.0
+  nanoid: 3.3.18
+  sass-embedded: 1.102.0
 
 allowBuilds:
   '@parcel/watcher': true
