@@ -17,14 +17,14 @@ This is a rudimentary File Explorer that works for Windows, Mac and Linux system
 ## Current Stack
 
 - App version `3.2.0`
-- Quasar `2.25.0`
-- `@quasar/app-vite` `3.6.1`
-- Vue `3.5.41`
-- vue-router `5.2.0`
-- Electron `43.3.0`
-- electron-builder `26.15.7`
+- Quasar `2.32.3`
+- `@quasar/app-vite` `3.8.4`
+- Vue `3.5.42`
+- vue-router `5.3.1`
+- Electron `44.4.1`
+- electron-builder `26.16.1`
 - Node `24.14.1+`
-- pnpm `11.20.0`
+- pnpm `12.4.2`
 
 Electron runtime dependencies live in `src-electron/package.json`, while renderer dependencies live in the root `package.json`. This mirrors the current Quasar app-vite Electron setup and keeps packaged Electron dependencies separate from the browser app.
 
