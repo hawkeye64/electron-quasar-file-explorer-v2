@@ -17,14 +17,14 @@ This is a rudimentary File Explorer that works for Windows, Mac and Linux system
 ## Current Stack
 
 - App version `3.2.0`
-- Quasar `2.32.3`
-- `@quasar/app-vite` `3.8.4`
-- Vue `3.5.42`
+- Quasar `2.34.0`
+- `@quasar/app-vite` `3.10.1`
+- Vue `3.5.43`
 - vue-router `5.3.1`
-- Electron `44.4.1`
-- electron-builder `26.16.1`
+- Electron `44.4.5`
+- electron-builder `26.17.0`
 - Node `24.14.1+`
-- pnpm `12.4.2`
+- pnpm `12.8.1`
 
 Electron runtime dependencies live in `src-electron/package.json`, while renderer dependencies live in the root `package.json`. This mirrors the current Quasar app-vite Electron setup and keeps packaged Electron dependencies separate from the browser app.
 
@@ -42,7 +42,7 @@ Electron runtime dependencies live in `src-electron/package.json`, while rendere
   reads to the renderer.
 - Electron Builder packaging with app icons under `src-electron/electron-assets/icons`.
 - Custom app, favicon, and file-type icons generated from source SVG assets.
-- Node's built-in test runner plus a Node 24 / pnpm 11 verification workflow
+- Node's built-in test runner plus a Node 24 / pnpm 12 verification workflow
   and a cross-platform Electron build-and-runtime-smoke matrix.
 
 ## How The Electron Boundary Works

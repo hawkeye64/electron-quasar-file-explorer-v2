@@ -36,9 +36,9 @@ Short user-facing summary of what changed for Electron Quasar File Explorer user
 
 - Node.js: `>=24.14.1`
 - pnpm: `>=11.5.0`
-- Quasar: `2.25.0`
-- Quasar App Vite target: `@quasar/app-vite@3.6.1`
-- Electron packaged runtime: `43.3.0`
+- Quasar: `2.34.0`
+- Quasar App Vite target: `@quasar/app-vite@3.10.1`
+- Electron packaged runtime: `44.4.5`
 - Operating systems: Linux AppImage, macOS default target, Windows NSIS
 
 ## Installation
